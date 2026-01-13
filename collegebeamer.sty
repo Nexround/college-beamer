@@ -57,6 +57,13 @@
 \newcommand{\translogoPath}{src/PolyU/trans-logo.png}
 \newcommand{\backgroundPath}{src/PolyU/background.png}
 
+\DeclareOption{ntu}{
+  \renewcommand{\maincolorRGB}{141, 38, 41}  % the theme's main color in RGB
+  \renewcommand{\colorlogoPath}{src/NTU/color-logo.png}  % path to the logo image with background color
+  \renewcommand{\translogoPath}{src/NTU/trans-logo.png}  % path to the logo image with transparent background
+  \renewcommand{\backgroundPath}{src/NTU/background.png}  % path to the background image
+}
+
 \DeclareOption{polyu}{
     \renewcommand{\maincolorRGB}{128, 57, 61}
     \renewcommand{\colorlogoPath}{src/PolyU/color-logo.png}
