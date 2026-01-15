@@ -1,5 +1,7 @@
 \documentclass{beamer}
 \usepackage[ntu,en]{collegeBeamer}
+\usepackage{booktabs}
+\usepackage{multirow}
 
 % meta-data
 \title{LoKI: Low-damage Knowledge Implanting of Large Language Models}
@@ -22,61 +24,17 @@
             \begin{column}{0.6\textwidth}
                 \textbf{The Hidden Cost of Task Adaptation: Catastrophic Forgetting}
                 \begin{itemize}
-                    \item LLMs accumulate world knowledge during pre-training.
-                    \item Fine-tuning for downstream tasks often leads to \alert{Catastrophic Forgetting (CF)}.
-                    \item Conventional methods perform \emph{indiscriminate updates}, perturbing crucial memory traces.
+                    \item LLMs accumulate world knowledge during pre-training \cite{radford2018, brown2020}.
+                    \item Fine-tuning for downstream tasks often leads to \alert{Catastrophic Forgetting (CF)} \cite{kotha2024, luo2025}.
+                    \item Conventional methods perform \emph{indiscriminate updates}, perturbing crucial memory traces \cite{cohen2023, petroni2019}.
                 \end{itemize}
-        %     \begin{block}{The Dilemma: Knowledge vs. Adaptation}
-        %     \begin{itemize}
-        %         \item \textbf{Implicit Storage:} World knowledge is embedded in Transformer weights during pre-training.
-        %         \item \textbf{The CF Penalty:} Fine-tuning often acts as a "black box" process, leading to \alert{irreversible knowledge loss}.
-        %     \end{itemize}
-        % \end{block}
 
-                % \vspace{0.3cm}
-                % \textbf{Real-world Impact (Llama 3.1):}
-                % \begin{itemize}
-                %     \item General performance can degrade significantly after LoRA/Full-FT.
-                %     \item \alert{Example:} LoRA on ToolACE drops general reasoning by \textbf{16.11\%} on average.
-                % \end{itemize}
             \end{column}
-            
-            % \begin{column}{0.35\textwidth}
-            %     \begin{block}{The Objective}
-            %         Achieving an effective balance between \textbf{task-specific adaptation} and \textbf{retention of general capabilities}.
-            %     \end{block}
-            % \end{column}
+
         \end{columns}
     \end{frame}
     
-    % Slide 3: Ideal Fine-tuning Paradigm
-    % \begin{frame}{An Ideal Fine-tuning Paradigm for LLMs}
-    %     \framesubtitle{Three key expectations}
-        
-    %     \begin{block}{Our Vision}
-    %         We believe that an ideal fine-tuning paradigm for large language models should satisfy the following three expectations:
-    %     \end{block}
-        
-    %     \vspace{0.3cm}
-        
-    %     \begin{enumerate}
-    %         \item \textbf{Parameter Efficiency}
-    %         \begin{itemize}
-    %             \item Minimize the number of trainable parameters to reduce computational costs and storage requirements.
-    %         \end{itemize}
-            
-    %         \item \textbf{Strong Adaptation to Downstream Tasks}
-    %         \begin{itemize}
-    %             \item Achieve competitive or superior performance on target tasks.
-    %         \end{itemize}
-            
-    %         \item \textbf{Minimal Damage to Pre-trained Capabilities}
-    %         \begin{itemize}
-    %             \item Preserve the general knowledge and reasoning abilities acquired during pre-training, as they form the foundation of model performance.
-    %         \end{itemize}
-    %     \end{enumerate}
-    % \end{frame}
-    
+
 % Slide 4: Motivation (Refactored from Introduction)
     \begin{frame}{Motivation: Resist Catastrophic Forgetting
 }
@@ -88,8 +46,8 @@
                     Conventional fine-tuning methods (e.g., LoRA) is \textbf{oblivious} to crucial weights:
                     \begin{itemize}
                         \item Updates are performed blindly across modules.
-                        \item Optimization perturbs \alert{critical memory traces}.
-                        \item Result: Degraded generalization.
+                        \item Optimization perturbs \alert{critical memory traces} \cite{cohen2023}.
+                        \item Result: Degraded generalization \cite{li2024revisiting}.
                     \end{itemize}
                 \end{alertblock}
             \end{column}
@@ -98,8 +56,8 @@
                 \begin{exampleblock}{The Opportunity: Knowledge Localization \& Redundancy}
                     Mechanistic studies reveal:
                     \begin{itemize}
-                        \item Internal knowledge is both \textbf{identifiable} and \textbf{editable}.
-                        \item LLMs exhibit significant \textbf{parameter redundancy}.
+                        \item Internal knowledge is both \textbf{identifiable} and \textbf{editable} \cite{meng2023mass, geva2021}.
+                        \item LLMs exhibit significant \textbf{parameter redundancy} \cite{sanh2020}.
                     \end{itemize}
                 \end{exampleblock}
             \end{column}
@@ -137,7 +95,7 @@
             
             \item \textbf{Synergistic with Other Tuning Methods}
             \begin{itemize}
-                \item In addition to adapting directly for downstream tasks, LoKI can be combined with existing parameter-efficient tuning techniques such as Low-Rank Adaptation (LoRA), further reducing the number of trainable parameters.
+                \item In addition to adapting directly for downstream tasks, LoKI can be combined with existing parameter-efficient tuning techniques such as Low-Rank Adaptation (LoRA) \cite{hu2022lora}, further reducing the number of trainable parameters.
             \end{itemize}
         \end{enumerate}
     \end{frame}
@@ -170,78 +128,7 @@
 
     \end{frame}
     
-    % Slide 7: KVA
-    % --- Stage 1: Slide 1 (Theory) ---
-%     \begin{frame}{Stage 1: Knowledge Vector Attribution (KVA)}
-%         \framesubtitle{Mechanistic understanding of knowledge storage}
-        
-%         \textbf{Core Concept: FFNs as Associative Memories}
-%         \begin{itemize}
-%             \item FFNs consist of $W_{up}$ (keys) and $W_{down}$ (values).
-%             \item Each column in $W_{down}$ is a \alert{knowledge vector} $\mathbf{v}_{j}$, representing an interpretable concept.
-%         \end{itemize}
 
-%         \begin{block}{KVA: Quantifying Neuron Contribution}
-%             We use \textbf{Integrated Gradients (IG)} to attribute model predictions to individual knowledge vectors by integrating gradients along the path from zero to actual activation:
-%             \begin{equation*}
-%                 \text{Attr}_{l,j}(\mathbf{x}) = \int_{\alpha=0}^{1} \frac{\partial \mathcal{L}(\alpha \cdot \mathbf{z}_{l,j})}{\partial \mathbf{z}_{l,j}} d\alpha
-%             \end{equation*}
-%             We approximate this integral via \textbf{Riemann approximation} with $m=7$ steps:
-%             \begin{equation*}
-%                 \text{Attr}_{l,j}(\mathbf{x}) \approx \frac{1}{m} \sum_{k=1}^{m} \frac{\partial \mathcal{L}(\frac{k}{m} \mathbf{z}_{l,j})}{\partial \mathbf{z}_{l,j}}
-%             \end{equation*}
-%         \end{block}
-%     \end{frame}
-% \begin{frame}{Stage 1: Knowledge Vector Attribution (KVA)}
-%         % \framesubtitle{Mechanistic understanding of knowledge storage}
-        
-%         \textbf{Concept:} FFN layers as \alert{Linear Associative Memories} (Key-Value pairs).
-%         \textbf{Objective:} Quantify each knowledge vector's contribution to general tasks.
-%         \begin{itemize}
-%             \item $W_{up}$ acts as keys detecting patterns.
-%             \item $W_{down}$ contains values corresponding to concepts.
-%         \end{itemize}
-
-%         \begin{block}{KVA Score Calculation}
-%             Aggregating total gradient flow through knowledge vector $j$ (Riemann approximation):
-%             \begin{equation*}
-%                 \text{Attr}_{l,j}(\mathbf{x}) \approx \frac{1}{m} \sum_{k=1}^{m} \frac{\partial \mathcal{L}(\frac{k}{m} \mathbf{z}_{l,j})}{\partial \mathbf{z}_{l,j}}
-%             \end{equation*}
-%             Applied to the \textbf{MMLU benchmark} to ensure broad domain coverage.
-%         \end{block}
-%     \end{frame}
-%     \begin{frame}{Stage 1: Knowledge Vector Attribution (KVA)}
-%     % \framesubtitle{Identifying critical neurons}
-    
-%     \textbf{Core Idea:} Treat FFN layers as key-value memory stores
-    
-%     \vspace{0.3cm}
-    
-%     \begin{columns}
-%         \begin{column}{0.55\textwidth}
-%             \textbf{KVA Method:}
-%             \begin{itemize}
-%                 \item Based on \alert{Integrated Gradients (IG)}
-%                 \item Quantify each knowledge vector's contribution to general tasks (MMLU)
-%                 \item Attribution score for layer $l$, neuron $j$:
-%             \end{itemize}
-            
-%             \begin{equation*}
-%                 \text{Attr}_{l,j} = \sum_{i=1}^{N} \left| \int_{\alpha=0}^{1} \frac{\partial \mathcal{L}_i(\alpha \cdot \mathbf{v}_{l,j})}{\partial \alpha} d\alpha \right|
-%             \end{equation*}
-            
-%             where $\mathcal{L}_i$ is the loss on sample $i$, $\mathbf{v}_{l,j}$ is the knowledge vector.
-
-%             \textbf{Objective:} Quantify each knowledge vector's contribution to general tasks.
-%         \end{column}
-        
-%         \begin{column}{0.4\textwidth}
-
-            
-            
-%         \end{column}
-%     \end{columns}
-% \end{frame}
 % Slide: Stage 1 - Knowledge Vector Attribution (KVA)
     \begin{frame}{Stage 1: Knowledge Vector Attribution (KVA)}
         % \framesubtitle{Mechanistic interpretation of FFN as Memory}
@@ -249,7 +136,7 @@
         \begin{columns}[T]
             % --- Left Column: FFN as KV Pair ---
             \begin{column}{0.48\textwidth}
-                \textbf{Mechanistic Interpretation of FFN as Key-Value Memory}
+                \textbf{Mechanistic Interpretation of FFN as Key-Value Memory} \cite{geva2021}
                 \begin{itemize}
                     \item \(\text{FFN}(x) = W_{down} \sigma(W_{up} x)\)
 
@@ -268,18 +155,14 @@
             \begin{column}{0.48\textwidth}
                 \textbf{The KVA Method}
                 \begin{itemize}
-                    \item Based on \alert{Integrated Gradients (IG)} to quantify the contribution of individual knowledge vectors to the model's \textbf{pre-trained behavior} (general tasks).
+                    \item Based on \alert{Integrated Gradients (IG)} \cite{sundararajan2017} to quantify the contribution of individual knowledge vectors to the model's \textbf{pre-trained behavior} (general tasks).
                     \item Path-integrated attribution of node $j$ at layer $l$:
                 \end{itemize}
 
                 \begin{equation*}
                     \text{Attr}_{l,j}(\mathbf{x}) = \int_{\alpha=0}^{1} \frac{\partial \mathcal{L}(\alpha \cdot z_{l,j})}{\partial z_{l,j}} d\alpha
                 \end{equation*}
-                
-                % \begin{itemize}
-                %     \item $\mathcal{L}$: Model output logit.
-                %     \item $z_{l,j}$: Activation of the $j$-th node.
-                % \end{itemize}
+
 
             \end{column}
         \end{columns}
@@ -289,7 +172,7 @@
         % \framesubtitle{Evaluating general-purpose performance}
         \begin{columns}
             \begin{column}{0.5\textwidth}
-        \textbf{Why MMLU?}
+        \textbf{Why MMLU?} \cite{kemker2018b}
         \begin{itemize}
             \item \textbf{Broad Domain Coverage:} 57 diverse subjects (STEM, humanities, etc.).
             \item \textbf{Standardized Evaluation:} Ensures scores are not domain-specialized.
@@ -341,14 +224,11 @@
             \begin{column}{0.5\textwidth}
                 \textbf{Key Observations:}
                 \begin{itemize}
-                    \item \alert{Structural Heterogeneity:} Knowledge nodes are unevenly distributed across layers.
+                    \item \alert{Structural Heterogeneity:} Knowledge nodes are unevenly distributed across layers \cite{meng2023mass, dai2022b}.
                     \item \alert{Clustering Effect:} Both high and low-contribution nodes are \textbf{densely concentrated in the same layers}.
-                    \item \alert{Structural Bias:} Distribution is not random; modifying distant layers can "override" information flow downstream.
+                    \item \alert{Structural Bias:} Distribution is not random; modifying distant layers can "override" information flow downstream \cite{hase2023}.
                 \end{itemize}
-                
-                % \begin{block}
-                %     Hase et al. (2023) have found a significant challenge: even when factual knowledge resides in specific layers, modifying weights in distant layers, especially the earlier ones, can effectively "override" the information flow downstream.
-                % \end{block}
+
             \end{column}
         \end{columns}
     \end{frame}
@@ -357,7 +237,7 @@
     \begin{frame}{Stage 2: Layer-Balanced Strategy}
         % \framesubtitle{How to choose trainable parameters}
         
-        \textbf{Objective:} Allocate an equal quota of trainable parameters to each layer to preserve hierarchical stability.
+        \textbf{Objective:} Allocate an equal quota of trainable parameters to each layer to preserve hierarchical stability \cite{sun2025a}.
         
         \begin{block}{Implementation Steps}
             \begin{enumerate}
@@ -384,8 +264,8 @@
 
         \begin{block}{Implementation Options}
             \begin{enumerate}
-                \item \textbf{LoKI Linear:} Directly update the selected original weights.
-                \item \textbf{LoKI-LoRA:} Parameterize the updates as low-rank matrices:
+                \item Directly update the selected original weights.
+                \item \textbf{LoKI-LoRA:} Parameterize the updates as low-rank matrices \cite{hu2022lora}:
                 \begin{equation*}
                     \Delta W_{S_l} = A_l B_l
                 \end{equation*}
@@ -395,81 +275,203 @@
     \end{frame}
     
     % Slide 8: Exp Results - Task Performance
-    \section{Experiments}
-    \begin{frame}{Task Performance: Tool Calling \& Reranking}
-        \framesubtitle{Comparative results on BFCL V3 and BEIR}
+\section{Experiments}
+
+    % --- Slide 1: Task 1 Downstream (ToolACE) ---
+    \begin{frame}{Task 1: ToolACE Function-Calling \cite{liu2024toolace}}
+        % \framesubtitle{Downstream Capabilities on Llama 3.1-8B}
+        
+        
         
         \begin{table}
             \centering
             \scriptsize
-            \begin{tabular}{l|ccc|c}
-                \hline
-                \textbf{Model} & \textbf{Overall Acc$\uparrow$} & \textbf{Single Turn$\uparrow$} & \textbf{Multi Turn$\uparrow$} & \textbf{Irrelevance$\downarrow$} \\
-                \hline
-                ToolACE (LoRA) & 58.32 & 87.56 & 7.62 & 88.05 \\
-                DoRA ($r=16$) & 58.90 & 82.04 & 16.00 & 88.92 \\
-                \alert{\textbf{LoKI ($q=30$)}} & \alert{\textbf{58.93}} & 82.71 & 16.25 & \alert{\textbf{87.65}} \\
-                \alert{\textbf{LoKI ($q=20$)}} & 58.16 & 81.02 & \alert{\textbf{17.75}} & \alert{85.73} \\
-                \hline
+            \setlength{\tabcolsep}{5pt}
+            \begin{tabular}{l|c|cc|cc}
+                \toprule
+                \multirow{2}{*}{\textbf{Model}} & \textbf{Overall} & \multicolumn{2}{c|}{\textbf{Single Turn Acc ($\uparrow$)}} & \textbf{Multi Turn} & \textbf{Hallucination} \\
+                 & \textbf{Acc ($\uparrow$)} & Non-Live & Live & \textbf{Acc ($\uparrow$)} & \textbf{Irrelevance ($\downarrow$)} \\
+                \midrule
+                ToolACE (LoRA)\cite{hu2022lora} & 58.32 & \textbf{87.56} & \textbf{76.10} & 7.62 & 88.05 \\
+                DoRA ($r=16$) \cite{liu2024dora}& 58.90 & 82.04 & 75.61 & 16.00 & 88.92 \\
+                PiSSA ($r=16$) \cite{meng2024pissa}& 53.97 & 80.56 & 72.68 & 5.62 & 92.19 \\
+                \midrule
+                LoKI ($q=10$) & 56.76 & 80.81 & 70.46 & 16.50 & \textbf{82.21} \\
+                \textbf{LoKI ($q=20$)} & 58.16 & 81.02 & 73.26 & \alert{\textbf{17.75}} & 85.73 \\
+                \textbf{LoKI ($q=30$)} & \alert{\textbf{58.93}} & 82.71 & 75.70 & 16.25 & 87.65 \\
+                \textbf{LoKI(with LoRA)} ($q=30$) & 57.16 & 81.96 & 71.66 & 15.75 & 84.01 \\
+                \bottomrule
             \end{tabular}
-            \caption{Berkeley Function Calling Leaderboard (Table 1)}
+            \caption{Comparison on Berkeley Function Calling Leaderboard V3.}
         \end{table}
 
-        \begin{itemize}
-            \item LoKI achieves the \textbf{highest multi-turn reasoning} capability (17.75\%).
-            \item Consistently reduces \textbf{Irrelevance} (hallucination measurement).
-            \item On Reranking (Table 3), LoKI ($q=30$) shows \textbf{positive gains} (+1.0 MAP@1) over full fine-tuning.
-        \end{itemize}
+        \begin{alertblock}{Observation}
+            % LoKI ($q=20$) demonstrates superior \textbf{multi-turn reasoning} (17.75\%), more than doubling the performance of the official LoRA model (7.62\%).
+            \textbf{LoKI achieves SOTA-competitive task performance with reduced hallucination}
+        \end{alertblock}
     \end{frame}
-    
-    % Slide 9: Exp Results - Catastrophic Forgetting
-    \begin{frame}{Mitigating Catastrophic Forgetting}
-        \framesubtitle{Preserving general capabilities (Llama 3.1-8B)}
+
+    % --- Slide 2: Task 1 CF (ToolACE) ---
+    \begin{frame}{Task 1 Analysis: Catastrophic Forgetting}
+        % \framesubtitle{Preserving General Capabilities (Llama 3.1-8B) - Full Benchmark View}
+        
+                
+        \begin{table}
+            \centering
+            \scriptsize % 使用较小字体以容纳所有列
+            % \setlength{\tabcolsep}{2.5pt} % 缩小列间距
+            \begin{tabular}{l|cccccc|c}
+                \toprule
+                \textbf{Model} & \textbf{Trivia} & \textbf{GSM} & \textbf{Hella} & \textbf{Wino} & \textbf{Human} & \textbf{IF} & \textbf{Avg Loss} \\
+                 & \textbf{QA} & \textbf{8K} & \textbf{Swag} & \textbf{Grande} & \textbf{Eval} & \textbf{Eval} & \textbf{($\downarrow$)} \\
+                \midrule
+                \textit{Llama 3.1-8B} & \textit{65.77} & \textit{84.46} & \textit{73.85} & \textit{62.98} & \textit{68.29} & \textit{79.76} & - \\
+                \midrule
+                ToolACE (LoRA) & 64.63 & 79.53 & 46.81 & 42.78 & 60.37 & 72.76 & 16.11\% \\
+                DoRA ($r=16$) & 63.97 & 82.64 & 70.78 & 57.85 & 65.24 & 73.47 & 4.92\% \\
+                PiSSA ($r=16$) & 52.50 & 51.40 & 37.98 & 13.18 & 15.85 & 55.95 & 48.93\% \\
+                \midrule
+                \textbf{LoKI ($q=10$)} & \textbf{65.85} & \textbf{84.99} & \textbf{75.14} & 61.33 & 68.90 & 77.54 & \alert{\textbf{0.34\%}} \\
+                \textbf{LoKI ($q=30$)} & 65.49 & 84.61 & 71.16 & 61.09 & \textbf{70.73} & 77.94 & \alert{\textbf{1.23\%}} \\
+                 \textbf{LoKI(with LoRA)} ($q=30$) & 64.30 & 83.47 & 70.78 & \textbf{62.51} & 70.12 & \textbf{78.21} & \alert{\textbf{1.26\%}} \\
+                
+                \bottomrule
+            \end{tabular}
+            \caption{Comprehensive evaluation of CF on 6 diverse benchmarks.}
+        \end{table}
+        
+        \begin{alertblock}{Observation}
+            %  While PiSSA suffers severe degradation (~49\% loss) and LoRA drops significantly on HellaSwag and WinoGrande, LoKI ($q=10$) retains \textbf{99.66\%} of the original model's capabilities.
+            \textbf{LoKI maintains near-original performance across all 6 general tasks.}
+
+        \end{alertblock}
+    \end{frame}
+
+    % --- Slide 3: Task 2 Downstream (LB Reranker) ---
+    \begin{frame}{Task 2: LB Reranker \cite{qwen2025}}
+        % \framesubtitle{Downstream Capabilities on Qwen 2.5-0.5B}
+        
+        
         
         \begin{table}
             \centering
             \scriptsize
-            \begin{tabular}{l|cccccc|c}
-                \hline
-                \textbf{Model} & \textbf{TriviaQA} & \textbf{GSM8K} & \textbf{HellaS.} & \textbf{WinoG.} & \textbf{HumE.} & \textbf{IFEval} & \textbf{Avg$\downarrow$} \\
-                \hline
-                Untuned & 65.77 & 84.46 & 73.85 & 62.98 & 68.29 & 79.76 & - \\
-                ToolACE & 64.63 & 79.53 & 46.81 & 42.78 & 60.37 & 72.76 & 16.11\% \\
-                DoRA & 63.97 & 82.64 & 70.78 & 57.85 & 65.24 & 73.47 & 4.92\% \\
-                \alert{\textbf{LoKI (q=30)}} & 65.49 & 84.61 & 71.16 & 61.09 & 70.73 & 77.94 & \alert{\textbf{1.23\%}} \\
-                \alert{\textbf{LoKI (q=10)}} & 65.85 & 84.99 & 75.14 & 61.33 & 68.90 & 77.54 & \alert{\textbf{0.34\%}} \\
-                \hline
+            \setlength{\tabcolsep}{6pt}
+            % Table showing difference relative to Full FT
+            \begin{tabular}{l|cccc}
+                \toprule
+                \textbf{Model} & \textbf{MAP@1} & \textbf{Recall@1} & \textbf{NDCG@1} & \textbf{P@1} \\
+                & (\%) & (\%) & (\%) & (\%) \\
+                \midrule
+                DoRA ($r=8$) \cite{liu2024dora}& -8.7 & -8.7 & -11.2 & -10.4 \\
+                PiSSA ($r=8$) \cite{meng2024pissa}& -9.6 & -9.6 & -9.7 & -10.2 \\
+                CorDA ($r=8$) \cite{yang2024corda}& -3.3 & -3.1 & -2.6 & -3.3 \\
+                \midrule
+                LoKI ($q=5$) & -3.1 & -3.1 & -2.2 & -1.8 \\
+                LoKI ($q=10$) & -2.3 & -2.3 & -0.3 & -0.5 \\
+                \textbf{LoKI ($q=30$)} & \alert{\textbf{+1.0}} & \alert{\textbf{+1.0}} & \alert{\textbf{+2.1}} & \alert{\textbf{+2.5}} \\
+                \bottomrule
             \end{tabular}
-            \caption{Benchmark scores after fine-tuning on ToolACE (Table 2)}
+            \caption{Retrieval performance on BEIR benchmark relative to Full Fine-Tuning model. Positive values indicate superior performance.}
         \end{table}
 
-        \begin{alertblock}{Significant Reduction}
-            Compared to LoRA (ToolACE), LoKI reduces performance degradation by over \textbf{90\%} while maintaining comparable task accuracy.
+        \begin{alertblock}{Observation}
+            %  Other PEFT methods (DoRA, CorDA) generally underperform compared to Full FT (negative values). In contrast, \textbf{LoKI ($q=30$) achieves positive gains} across all key retrieval metrics.
+            \textbf{LoKI ($q=30$) outperforms Full Parameter Fine-Tuning on retrieval metrics.}
+        \end{alertblock}
+    \end{frame}
+
+    % --- Slide 4: Task 2 CF (LB Reranker) ---
+    \begin{frame}{Task 2 Analysis: Catastrophic Forgetting}
+        % \framesubtitle{Preserving General Capabilities (Qwen 2.5-0.5B) - Full Benchmark View}
+
+        
+        \begin{table}
+            \centering
+            \scriptsize % 使用较小字体
+            \setlength{\tabcolsep}{2.5pt} % 缩小列间距
+            \begin{tabular}{l|cccccc|c}
+                \toprule
+                \textbf{Model} & \textbf{Trivia} & \textbf{GSM} & \textbf{Hella} & \textbf{Wino} & \textbf{Human} & \textbf{IF} & \textbf{Avg Loss} \\
+                 & \textbf{QA} & \textbf{8K} & \textbf{Swag} & \textbf{Grande} & \textbf{Eval} & \textbf{Eval} & \textbf{($\downarrow$)} \\
+                \midrule
+                \textit{Qwen 2.5-0.5B} & \textit{24.37} & \textit{39.65} & \textit{30.98} & \textit{44.20} & \textit{26.83} & \textit{33.39} & - \\
+                \midrule
+                Full FT & 4.65 & 2.65 & \alert{0.00} & \alert{0.00} & \alert{0.00} & 23.20 & 84.13\% \\
+                DoRA ($r=8$) & 19.30 & 34.01 & 22.21 & 44.70 & 25.22 & 31.67 & 12.23\% \\
+                CorDA ($r=8$) & 4.64 & 2.43 & \alert{0.00} & \alert{0.00} & \alert{0.00} & 23.20 & 84.22\% \\
+                \midrule
+                \textbf{LoKI ($q=30$)} & 20.10 & \textbf{37.60} & \textbf{38.39} & \textbf{43.96} & \textbf{26.83} & 32.25 & \alert{\textbf{0.46\%}} \\
+                \bottomrule
+            \end{tabular}
+            \caption{Comprehensive evaluation of CF on 6 diverse benchmarks.}
+        \end{table}
+
+        \begin{alertblock}{Observation}
+            % Full Parameter Fine-Tuning and CorDA lead to complete model collapse (0.00 score) on reasoning tasks like HellaSwag and HumanEval. \textbf{LoKI remains robust}, preserving nearly all general knowledge.
+            \textbf{LoKI prevents the model collapse observed in Full Fine-Tuning.}
         \end{alertblock}
     \end{frame}
     
     % Slide 10: Ablation Study
-    \begin{frame}{Ablation Studies}
+% Slide 10: Ablation Study
+    \begin{frame}{Ablation Studies: Validating Core Components}
+        % \framesubtitle{Why do we need KVA and Layer-Balanced Strategy?}
         
-        \begin{columns}
-            \begin{column}{0.48\textwidth}
-                \textbf{1. Validation of KVA}
-                \begin{itemize}
-                    \item \textbf{S-H:} Suppress \alert{high-contribution} nodes $\rightarrow$ \alert{\textbf{36.73\%}} Avg. Drop.
-                    \item \textbf{S-L:} Suppress low-contribution nodes $\rightarrow$ 11.35\% Drop.
-                    \item \textit{Confirms KVA accurately identifies critical vectors.}
-                \end{itemize}
+        \begin{columns}[T]
+            % --- Column 1: Validation of KVA ---
+            \begin{column}{0.49\textwidth}
+                \begin{block}{1. Effectiveness of KVA}
+                    \textit{Hypothesis: If KVA works, removing "High-Contribution" nodes (S-H) should cause massive damage.}
+                    \vspace{0.2cm}
+                    
+                    \centering
+                    \small
+                    \begin{tabular}{l|c}
+                        \toprule
+                        \textbf{Strategy ($q=1$)} & \textbf{Avg. Drop $\downarrow$} \\
+                        \midrule
+                        \textbf{S-H} (Suppress High) & \alert{\textbf{36.73\%}} \\
+                        S-L (Suppress Low) & \textcolor{blue}{\textbf{11.35\%}} \\
+                        \midrule
+                        \textit{Performance Gap} & \textit{$\approx$ \textbf{25.38\%}} \\
+                        \bottomrule
+                    \end{tabular}
+                \end{block}
+                \vspace{0.1cm}
+                \footnotesize \textbf{Conclusion:} KVA accurately locates critical knowledge. Suppressing high-value nodes is $\mathbf{3\times}$ more destructive.
             \end{column}
-            \begin{column}{0.48\textwidth}
-                \textbf{2. Validation of Layer-Balanced Strategy}
-                \begin{itemize}
-                    \item \textbf{LoKI:} 8.86\% Drop (on Qwen).
-                    \item \textbf{Global-High (G-H):} 39.04\% Drop.
-                    \item \textbf{Global-Low (G-L):} 30.48\% Drop.
-                    \item \textit{Confirms the necessity of keeping hierarchical quotas.}
-                \end{itemize}
+
+            % --- Column 2: Validation of Strategy ---
+            \begin{column}{0.49\textwidth}
+                \begin{block}{2. Necessity of Layer-Balanced Strategy}
+                    \textit{Hypothesis: Simply picking the lowest global values (G-L) ignores structural hierarchy.}
+                    \vspace{0.2cm}
+                    
+                    \centering
+                    \small
+                    \begin{tabular}{l|c}
+                        \toprule
+                        \textbf{Method ($q=10$)} & \textbf{Avg. Drop $\downarrow$} \\
+                        \midrule
+                        Global-High (G-H) & 39.04\% \\
+                        Global-Low (G-L) & 30.48\% \\
+                        \midrule
+                        \textbf{LoKI} & \textcolor{green!60!black}{\textbf{8.86\%}} \\
+                        \bottomrule
+                    \end{tabular}
+                \end{block}
+                \vspace{0.1cm}
+                \footnotesize \textbf{Conclusion:} Global selection disrupts hierarchy. Layer-Balanced Strategy is essential for stability.
             \end{column}
         \end{columns}
+
+        % \vspace{0.3cm}
+        
+        % % Final Summary Box
+        % \begin{alertblock}{Takeaway}
+        %     The combination of \textbf{Accurate Localization (KVA)} and \textbf{Structural Preservation (Layer-Balanced Strategy)} is the key to LoKI's success.
+        % \end{alertblock}
     \end{frame}
     
     % Slide 11: Conclusion
@@ -493,51 +495,83 @@
     
     % Q&A Page with Logos and QR Codes
     \section{Q \& A}
-    \begin{frame}{Thank you for your attention!}
-        \begin{center}
-            % {\Huge \textbf{Q \& A}}
+\begin{frame}{Thank you for your attention!}
+    \begin{center}
+        % 使用 tabular 环境，设置三列居中
+        \begin{tabular}{ccc}
+            % 第一行：Logo
+            \includegraphics[height=1cm]{assets/arxiv-logo-1.png} & 
+            \includegraphics[height=1cm]{assets/GitHub-Logo-700x394.png} & 
+            \includegraphics[height=1cm]{assets/WeChat.png} \\[0.5cm]
             
-            % \vspace{1cm}
-            % {\Large }
+            % 第二行：二维码
+            \includegraphics[width=3cm]{assets/arxiv_code.png} & 
+            \includegraphics[width=3cm]{assets/github_code.png} & 
+            \includegraphics[width=3cm]{assets/wechat_code.png} \\[0.2cm]
             
-            % \vspace{1.5cm}
-            
-            % Logos and QR codes section
-            \begin{columns}[T]
-                \begin{column}{0.33\textwidth}
-                    \begin{center}
-                        \includegraphics[height=1cm]{assets/arxiv-logo-1.png}\\
-                        \vspace{0.5cm}
-                        % arXiv QR code
-                        \includegraphics[width=3cm]{assets/arxiv_code.png}
-                        \\[0.2cm]
-                        \small arXiv:2505.22120
-                    \end{center}
-                \end{column}
-                
-                \begin{column}{0.33\textwidth}
-                    \begin{center}
-                        \includegraphics[height=1cm]{assets/GitHub-Logo-700x394.png}\\
-                        \vspace{0.5cm}
-                        % GitHub QR code
-                        \includegraphics[width=3cm]{assets/github_code.png}
-                        \\[0.2cm]
-                        \small github.com/Nexround/LoKI
-                    \end{center}
-                \end{column}
-                
-                \begin{column}{0.33\textwidth}
-                    \begin{center}
-                        \includegraphics[height=1cm]{assets/WeChat.png}\\
-                        \vspace{0.5cm}
-                        % WeChat QR code
-                        \includegraphics[width=3cm]{assets/wechat_code.png}
-                        \\[0.2cm]
-                        \small Contact Us
-                    \end{center}
-                \end{column}
-            \end{columns}
-        \end{center}
+            % 第三行：文字说明
+            \small arXiv:2505.22120 & 
+            \small github.com/Nexround/LoKI & 
+            \small Contact Us \\
+        \end{tabular}
+    \end{center}
+\end{frame}
+
+    % References Section
+    \section{References}
+    \begin{frame}[shrink=15]{References}
+        \tiny
+        \setlength{\itemsep}{0pt}
+        \setlength{\parskip}{0pt}
+        \begin{thebibliography}{99}
+        \setlength{\itemsep}{1pt}
+        
+        \bibitem{brown2020}
+        Brown, T. et al. (2020). Language Models are Few-Shot Learners. \textit{NeurIPS}.
+        \bibitem{cohen2023}
+        Cohen, R. et al. (2023). Crawling The Internal Knowledge-Base of Language Models. \textit{EACL}.
+        \bibitem{dai2022b}
+        Dai, D. et al. (2022b). Knowledge Neurons in Pretrained Transformers. \textit{ACL}.
+        \bibitem{geva2021}
+        Geva, M. et al. (2021). Transformer Feed-Forward Layers Are Key-Value Memories. \textit{EMNLP}.
+        \bibitem{hase2023}
+        Hase, P. et al. (2023). Does Localization Inform Editing? \textit{NeurIPS}.
+        \bibitem{hu2022lora}
+        Hu, E. J. et al. (2022). LoRA: Low-rank adaptation of large language models. \textit{ICLR}.
+        \bibitem{kemker2018b}
+        Kemker, R. et al. (2018b). Measuring Catastrophic Forgetting in Neural Networks. \textit{AAAI}.
+        \bibitem{kotha2024}
+        Kotha, S. et al. (2024). Understanding CF in LMs via Implicit Inference. \textit{ICLR}.
+        \bibitem{li2024revisiting}
+        Li, H. et al. (2024). Revisiting Catastrophic Forgetting in Large Language Model Tuning. \textit{EMNLP}.
+        \bibitem{liu2024dora}
+        Liu, S. et al. (2024). DoRA: Weight-Decomposed Low-Rank Adaptation. \textit{ICML}.
+        \bibitem{liu2024toolace}
+        Liu, W. et al. (2024). ToolACE: Winning the Points of LLM Function Calling. \textit{arXiv}.
+        \bibitem{luo2025}
+        Luo, Y. et al. (2025). An Empirical Study of CF in LLMs During Continual Fine-tuning. \textit{arXiv}.
+        \bibitem{meng2022locating}
+        Meng, K. et al. (2022). Locating and Editing Factual Associations in GPT. \textit{NeurIPS}.
+        \bibitem{meng2023mass}
+        Meng, K. et al. (2023a). Mass-Editing Memory in a Transformer. \textit{ICLR}.
+        \bibitem{meng2024pissa}
+        Meng, F. et al. (2024). PiSSA: Principal Singular Values and Singular Vectors Adaptation. \textit{NeurIPS}.
+        \bibitem{petroni2019}
+        Petroni, F. et al. (2019). Language Models as Knowledge Bases? \textit{EMNLP}.
+        \bibitem{qwen2025}
+        Qwen et al. (2025). Qwen2.5 Technical Report. \textit{arXiv}.
+        \bibitem{radford2018}
+        Radford, A. \& Narasimhan, K. (2018). Improving Language Understanding by Generative Pre-Training.
+        \bibitem{sanh2020}
+        Sanh, V. et al. (2020). Movement Pruning: Adaptive Sparsity by Fine-Tuning. \textit{NeurIPS}.
+        \bibitem{sun2025a}
+        Sun, Q. et al. (2025a). Transformer Layers as Painters. \textit{AAAI}.
+        \bibitem{sundararajan2017}
+        Sundararajan, M. et al. (2017). Axiomatic Attribution for Deep Networks. \textit{ICML}.
+        \bibitem{yang2024corda}
+        Yang, Y. et al. (2024). CorDA: Context-Oriented Decomposition Adaptation. \textit{NeurIPS}.
+
+        \end{thebibliography}
     \end{frame}
     
 \end{document}
