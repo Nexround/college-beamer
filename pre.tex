@@ -1,15 +1,18 @@
 \documentclass{beamer}
-\usepackage[ntu,en]{collegeBeamer}
+\usepackage[ntu,zh]{collegeBeamer}
 \usepackage{booktabs}
 \usepackage{multirow}
 
-% meta-data
-\title{LoKI: Low-damage Knowledge Implanting of Large Language Models}
-\subtitle{AAAI 2026 Oral Presentation}
-\author{Runyu Wang\inst{1}, Peng Ping\texorpdfstring{\textsuperscript{*}}{*}\inst{1}, Zhengyu Guo\inst{2}, Xiaoye Zhang\inst{3}, Quan Shi\inst{1}, Liting Zhou\inst{4}, Tianbo Ji\inst{1}}
-\institute{\inst{1}Nantong University \\ \inst{2}South China University of Technology \\ \inst{3}China Southern Power Grid Company Limited \\ \inst{4}Dublin City University \\ \texorpdfstring{\textsuperscript{*}}{*}Corresponding author}
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
 
-\date{23 Jan 2026}
+% meta-data
+\title{LoKI：大语言模型的低损伤知识植入}
+\subtitle{AAAI 2026 口头报告}
+\author{Runyu Wang\inst{1}, Peng Ping\texorpdfstring{\textsuperscript{*}}{*}\inst{1}, Zhengyu Guo\inst{2}, Xiaoye Zhang\inst{3}, Quan Shi\inst{1}, Liting Zhou\inst{4}, Tianbo Ji\inst{1}}
+\institute{\inst{1}南通大学 \\ \inst{2}华南理工大学 \\ \inst{3}南方电网有限责任公司 \\ \inst{4}都柏林城市大学 \\ \texorpdfstring{\textsuperscript{*}}{*}通讯作者}
+
+\date{2026年1月23日}
 
 \begin{document}
     
@@ -17,16 +20,16 @@
     \maketitle
     
     % Slide 2: Background
-    \section{Background \& Motivation}
-    \begin{frame}{Background: The Fine-tuning Dilemma}
+    \section{背景与动机}
+    \begin{frame}{背景：微调困境}
         
         \begin{columns}
             \begin{column}{0.6\textwidth}
-                \textbf{The Hidden Cost of Task Adaptation: Catastrophic Forgetting}
+                \textbf{任务适配的隐性代价：灾难性遗忘}
                 \begin{itemize}
-                    \item LLMs accumulate world knowledge during pre-training \cite{radford2018, brown2020}.
-                    \item Fine-tuning for downstream tasks often leads to \alert{Catastrophic Forgetting (CF)} \cite{kotha2024, luo2025}.
-                    \item Conventional methods perform \emph{indiscriminate updates}, perturbing crucial memory traces \cite{cohen2023, petroni2019}.
+                    \item 大语言模型在预训练阶段积累世界知识 \cite{radford2018, brown2020}.
+                    \item 针对下游任务的微调常常导致\alert{灾难性遗忘（CF）} \cite{kotha2024, luo2025}.
+                    \item 传统方法进行\emph{无差别更新}，扰动关键记忆痕迹 \cite{cohen2023, petroni2019}.
                 \end{itemize}
 
             \end{column}
@@ -36,28 +39,28 @@
     
 
 % Slide 4: Motivation (Refactored from Introduction)
-    \begin{frame}{Motivation: Resist Catastrophic Forgetting
+    \begin{frame}{动机：抵御灾难性遗忘
 }
         % Fine-tuning Guided by Mechanistic Insights
         % \framesubtitle{From indiscriminate updates to mechanistic-guided implanting}
         \begin{columns}[T]
             \begin{column}{0.48\textwidth}
-                \begin{alertblock}{Problem: Indiscriminate Updates}
-                    Conventional fine-tuning methods (e.g., LoRA) is \textbf{oblivious} to crucial weights:
+                \begin{alertblock}{问题：无差别更新}
+                    传统微调方法（例如 LoRA）\textbf{忽视}关键权重：
                     \begin{itemize}
-                        \item Updates are performed blindly across modules.
-                        \item Optimization perturbs \alert{critical memory traces} \cite{cohen2023}.
-                        \item Result: Degraded generalization \cite{li2024revisiting}.
+                        \item 更新在各个模块中盲目进行。
+                        \item 优化会扰动\alert{关键记忆痕迹} \cite{cohen2023}。
+                        \item 结果：泛化能力下降 \cite{li2024revisiting}.
                     \end{itemize}
                 \end{alertblock}
             \end{column}
             
             \begin{column}{0.48\textwidth}
-                \begin{exampleblock}{The Opportunity: Knowledge Localization \& Redundancy}
-                    Mechanistic studies reveal:
+                \begin{exampleblock}{机遇：知识定位与参数冗余}
+                    机制研究表明：
                     \begin{itemize}
-                        \item Internal knowledge is both \textbf{identifiable} and \textbf{editable} \cite{meng2023mass, geva2021}.
-                        \item LLMs exhibit significant \textbf{parameter redundancy} \cite{sanh2020}.
+                        \item 内部知识既\textbf{可识别}又\textbf{可编辑} \cite{meng2023mass, geva2021}.
+                        \item 大语言模型具有显著的\textbf{参数冗余} \cite{sanh2020}.
                     \end{itemize}
                 \end{exampleblock}
             \end{column}
@@ -66,49 +69,49 @@
         
     \end{frame}
     
-    \begin{frame}{Next Step of PEFT: From Indiscriminate Updates to Mechanistic-Guided Adaptation}
-        \textbf{Our Hypothesis:} 
-        By identifying \alert{low-contributing weights}, we can repurpose them as capacity for new knowledge with \textbf{minimal damage} to existing competencies.
+    \begin{frame}{参数高效微调的下一步：从无差别更新到机制引导的适配}
+        \textbf{我们的假设：}
+        通过识别\alert{低贡献权重}，我们可以将其重新用作容纳新知识的空间，同时对现有能力造成\textbf{最小损伤}。
     \end{frame}
-    % Slide 5: LoKI Framework
-    \section{LoKI Framework}
-    \begin{frame}{Major Advantages of LoKI}
+    % Slide 5: LoKI 框架
+    \section{LoKI 框架}
+    \begin{frame}{LoKI 的主要优势}
         
         % \textbf{LoKI offers several major advantages:}
         
         % \vspace{0.3cm}
         
         \begin{enumerate}
-            \item \textbf{Superior Balance Between CF and Task-Specific Performance}
+            \item \textbf{在灾难性遗忘与任务性能之间取得更优平衡}
             \begin{itemize}
-                \item Fine-tuning LLMs of two representative sizes with LoKI effectively mitigates CF, outperforming state-of-the-art PEFT methods while maintaining strong task performance.
+                \item 在两种代表性规模的大语言模型上进行 LoKI 微调，可以有效缓解灾难性遗忘；在保持较强任务性能的同时，性能优于当前先进的参数高效微调方法。
             \end{itemize}
             
             \vspace{0.2cm}
             
-            \item \textbf{Intrinsically Parameter-Efficient}
+            \item \textbf{天然具备参数高效性}
             \begin{itemize}
-                \item LoKI updates only a subset of the model's original parameters and allows for explicit control over the number of trainable weights.
+                \item LoKI 只更新模型原始参数的一个子集，并允许显式控制可训练权重的数量。
             \end{itemize}
             
             \vspace{0.2cm}
             
-            \item \textbf{Synergistic with Other Tuning Methods}
+            \item \textbf{可与其他调优方法协同工作}
             \begin{itemize}
-                \item In addition to adapting directly for downstream tasks, LoKI can be combined with existing parameter-efficient tuning techniques such as Low-Rank Adaptation (LoRA) \cite{hu2022lora}, further reducing the number of trainable parameters.
+                \item 除了直接适配下游任务外，LoKI 还可以与低秩适配（LoRA）等现有参数高效调优技术结合，进一步减少可训练参数的数量。
             \end{itemize}
         \end{enumerate}
     \end{frame}
     
-    % Slide 6: LoKI Framework Details
-    \begin{frame}{LoKI: Low-damage Knowledge Implanting}
-        \framesubtitle{A staged fine-tuning process}
+    % Slide 6: LoKI 框架 Details
+    \begin{frame}{LoKI：低损伤知识植入}
+        \framesubtitle{分阶段的微调流程}
         
         \begin{columns}
             \begin{column}{0.5\textwidth}
                 \begin{center}
                     \includegraphics[width=\textwidth]{assets/pipeline.pdf}
-                    \\ \scriptsize \textbf{Figure 1:} Schematic illustration of the staged fine-tuning process in LoKI.
+                    \\ \scriptsize \textbf{图 1：} LoKI 分阶段微调流程示意图。
 
                 \end{center}
             \end{column}
@@ -119,9 +122,9 @@
                 % \vspace{0.3cm}
                 
                 \begin{description}
-                    \item[1. Analysing] Use \textbf{KVA (Knowledge Vector Attribution)} to evaluate each node's contribution to pre-trained behavior.
-                    \item[2. Selecting] Apply \textbf{Layer-Balanced Strategy} to choose trainable nodes while preserving hierarchical stability.
-                    \item[3. Implanting] Partition weights: Freeze critical ones ($W_{\setminus S}$), update only low-damage ones ($W_S$).
+                    \item[1. 分析] 使用\textbf{KVA（知识向量归因）}评估每个节点对预训练行为的贡献。
+                    \item[2. 选择] 应用\textbf{分层平衡策略}选择可训练节点，同时保持层级结构稳定性。
+                    \item[3. 植入] 划分权重：冻结关键权重（$W_{\setminus S}$），仅更新低损伤权重（$W_S$）。
                 \end{description}
             \end{column}
         \end{columns}
@@ -129,34 +132,34 @@
     \end{frame}
     
 
-% Slide: Stage 1 - Knowledge Vector Attribution (KVA)
-    \begin{frame}{Stage 1: Knowledge Vector Attribution (KVA)}
+% Slide: Stage 1 - 知识向量 Attribution (KVA)
+    \begin{frame}{阶段 1：知识向量归因（KVA）}
         % \framesubtitle{Mechanistic interpretation of FFN as Memory}
         
         \begin{columns}[T]
             % --- Left Column: FFN as KV Pair ---
             \begin{column}{0.48\textwidth}
-                \textbf{Mechanistic Interpretation of FFN as Key-Value Memory} \cite{geva2021}
+                \textbf{将 FFN 解释为键值记忆的机制视角} \cite{geva2021}
                 \begin{itemize}
                     \item \(\text{FFN}(x) = W_{down} \sigma(W_{up} x)\)
 
-                    \item \textbf{Keys ($W_{up}$):} Detect input patterns or features.
-                    \item \textbf{Values ($W_{down}$):} Store interpretable concepts.
+                    \item \textbf{键（$W_{up}$）：}检测输入模式或特征。
+                    \item \textbf{值（$W_{down}$）：}存储可解释概念。
                 \end{itemize}
 
-                \begin{block}{Knowledge Vector}
-                    We treat the $j$-th column of $W_{down}$ as a \alert{Knowledge Vector} ($\mathbf{v}_j$).
+                \begin{block}{知识向量}
+                    我们将 $W_{down}$ 的第 $j$ 列视为一个\alert{知识向量}（$\mathbf{v}_j$）。
                     
-                    Each vector $\mathbf{v}_j$ acts as an atomic unit of stored knowledge.
+                    每个向量 $\mathbf{v}_j$ 都是一个独立的知识存储单元。
                 \end{block}
             \end{column}
 
             % --- Right Column: KVA Method ---
             \begin{column}{0.48\textwidth}
-                \textbf{The KVA Method}
+                \textbf{KVA 方法}
                 \begin{itemize}
-                    \item Based on \alert{Integrated Gradients (IG)} \cite{sundararajan2017} to quantify the contribution of individual knowledge vectors to the model's \textbf{pre-trained behavior} (general tasks).
-                    \item Path-integrated attribution of node $j$ at layer $l$:
+                    \item 基于\alert{积分梯度（IG）} \cite{sundararajan2017}，量化各知识向量对模型\textbf{预训练行为}（通用任务）的贡献。
+                    \item 第 $l$ 层节点 $j$ 的路径积分归因：
                 \end{itemize}
 
                 \begin{equation*}
@@ -168,22 +171,22 @@
         \end{columns}
     \end{frame}
     % --- Stage 1: Slide 2 (Application on MMLU) ---
-    \begin{frame}{Stage 1: Scoring via Massive Multitask Understanding (MMLU) Benchmark}
+    \begin{frame}{阶段 1：通过大规模多任务语言理解（MMLU）基准进行评分}
         % \framesubtitle{Evaluating general-purpose performance}
         \begin{columns}
             \begin{column}{0.5\textwidth}
-        \textbf{Why MMLU?} \cite{kemker2018b}
+        \textbf{为什么选择 MMLU？} \cite{kemker2018b}
         \begin{itemize}
-            \item \textbf{Broad Domain Coverage:} 57 diverse subjects (STEM, humanities, etc.).
-            \item \textbf{Standardized Evaluation:} Ensures scores are not domain-specialized.
-            \item \textbf{General Capability Proxy:} High MMLU performance correlates with real-world language understanding.
+            \item \textbf{广泛的领域覆盖：}涵盖 57 个不同学科（理工科、人文学科等）。
+            \item \textbf{标准化评估：}确保评分不局限于特定领域。
+            \item \textbf{通用能力代理指标：}MMLU 高分与现实世界的语言理解能力相关。
         \end{itemize}
             \end{column}
             \begin{column}{0.45\textwidth}
-                \begin{alertblock}{Key Properties}
+                \begin{alertblock}{关键特性}
                 \begin{itemize}
-                    \item \textbf{One-time per model:} KVA only needs to be executed once for any given model
-                    \item \textbf{Task-agnostic:} No dependency on downstream tasks
+                    \item \textbf{每个模型只需执行一次：}对于给定模型，KVA 只需运行一次
+                    \item \textbf{与任务无关：}不依赖下游任务
                     % \item \textbf{Efficient:} Controllable overhead
                 \end{itemize}
             \end{alertblock}
@@ -208,7 +211,7 @@
     \end{frame}
 
     % --- Stage 2: Slide 1 (Phenomenon & Heatmap) ---
-    \begin{frame}{Stage 2: Analysis of KVA Results}
+    \begin{frame}{阶段 2：KVA 结果分析}
         % \framesubtitle{The "Novel Phenomenon" of structural bias}
         
         \begin{columns}
@@ -218,15 +221,15 @@
                     \vspace{0.2cm}
                     \includegraphics[width=\textwidth]{assets/L3_5_L.pdf} \\
                     \vspace{0.1cm}
-                    \scriptsize \textbf{Figure 2:} Heatmaps of top 5\% KVA results for Llama 3.1-8B.
+                    \scriptsize \textbf{图 2：} Llama 3.1-8B 的 KVA 前 5\% 结果热力图。
                 \end{center}
             \end{column}
             \begin{column}{0.5\textwidth}
-                \textbf{Key Observations:}
+                \textbf{关键观察：}
                 \begin{itemize}
-                    \item \alert{Structural Heterogeneity:} Knowledge nodes are unevenly distributed across layers \cite{meng2023mass, dai2022b}.
-                    \item \alert{Clustering Effect:} Both high and low-contribution nodes are \textbf{densely concentrated in the same layers}.
-                    \item \alert{Structural Bias:} Distribution is not random; modifying distant layers can "override" information flow downstream \cite{hase2023}.
+                    \item \alert{结构异质性：}知识节点在不同层之间分布不均 \cite{meng2023mass, dai2022b}.
+                    \item \alert{聚集效应：}高贡献与低贡献节点都\textbf{密集集中在相同层中}。
+                    \item \alert{结构偏置：}分布并非随机；修改距离较远的层可能“覆盖”下游的信息流 \cite{hase2023}.
                 \end{itemize}
 
             \end{column}
@@ -234,51 +237,51 @@
     \end{frame}
 
     % --- Stage 2: Slide 2 (Layer-Balanced Strategy Details) ---
-    \begin{frame}{Stage 2: Layer-Balanced Strategy}
+    \begin{frame}{阶段 2：分层平衡策略}
         % \framesubtitle{How to choose trainable parameters}
         
-        \textbf{Objective:} Allocate an equal quota of trainable parameters to each layer to preserve hierarchical stability \cite{sun2025a}.
+        \textbf{目标：}为每层分配相同的可训练参数配额，以保持层级结构稳定性 \cite{sun2025a}.
         
-        \begin{block}{Implementation Steps}
+        \begin{block}{实施步骤}
             \begin{enumerate}
-                \item \textbf{Quota Allocation:} Define total trainable slots $T$ (hyperparameter $q\%$) and set $k_l = T/L$ per layer.
-                \item \textbf{Per-Sample Selection:} For each sample $t$, select $k_l$ nodes with the \alert{lowest} KVA values.
-                \item \textbf{Frequency Aggregation:} Tally selection frequencies $c_{l,i}$ across all $N$ samples.
-                \item \textbf{Final Selection:} Choose nodes with the highest frequencies in each layer to form the final set $S$.
+                \item \textbf{配额分配：}定义可训练位置总数 $T$（超参数 $q\%$），并为每层设置 $k_l = T/L$。
+                \item \textbf{逐样本选择：}对于每个样本 $t$，选择 KVA 值\alert{最低}的 $k_l$ 个节点。
+                \item \textbf{频次聚合：}统计所有 $N$ 个样本中的选择频次 $c_{l,i}$。
+                \item \textbf{最终选择：}在每层选择频次最高的节点，组成最终集合 $S$。
             \end{enumerate}
         \end{block}
         
-        \begin{alertblock}{Why it works}
-            Ensures that newly implanted knowledge \textbf{conforms to the hierarchical relationship} and avoids disproportionately disturbing critical layers.
+        \begin{alertblock}{有效原因}
+            确保新植入的知识\textbf{符合层级关系}，避免过度扰动关键层。
         \end{alertblock}
     \end{frame}
     
-    % Slide 7: Stage 3: Implanting
-    \begin{frame}{Stage 3: Implanting}
+    % Slide 7: 阶段 3：知识植入
+    \begin{frame}{阶段 3：知识植入}
         % \framesubtitle{Parameter partitioning}
         
-        For each layer $l$, decompose $W_{down}^{(l)}$:
+        对于每一层 $l$，将 $W_{down}^{(l)}$ 分解为：
         \begin{equation*}
-            W_{down}^{(l)} = [W_{S_l}; W_{\setminus S_l}] \rightarrow \begin{cases} W_{S_l} & \text{\alert{Active (Low-contribution)}} \\ W_{\setminus S_l} & \text{Frozen (High-contribution)} \end{cases}
+            W_{down}^{(l)} = [W_{S_l}; W_{\setminus S_l}] \rightarrow \begin{cases} W_{S_l} & \text{\alert{激活（低贡献）}} \\ W_{\setminus S_l} & \text{冻结（高贡献）} \end{cases}
         \end{equation*}
 
-        \begin{block}{Implementation Options}
+        \begin{block}{实现方式}
             \begin{enumerate}
-                \item Directly update the selected original weights.
-                \item \textbf{LoKI-LoRA:} Parameterize the updates as low-rank matrices \cite{hu2022lora}:
+                \item 直接更新选定的原始权重。
+                \item \textbf{LoKI-LoRA:} 将更新参数化为低秩矩阵 \cite{hu2022lora}:
                 \begin{equation*}
                     \Delta W_{S_l} = A_l B_l
                 \end{equation*}
             \end{enumerate}
         \end{block}
-        \alert{Result:} Transforms LoKI into a module-wise process, easy to integrate into existing pipelines (e.g., Llama-Factory).
+        \alert{结果：}LoKI 被转化为按模块执行的流程，易于集成到现有流水线（例如 Llama-Factory）中。
     \end{frame}
     
     % Slide 8: Exp Results - Task Performance
-\section{Experiments}
+\section{实验}
 
     % --- Slide 1: Task 1 Downstream (ToolACE) ---
-    \begin{frame}{Task 1: ToolACE Function-Calling \cite{liu2024toolace}}
+    \begin{frame}{任务 1：ToolACE 函数调用}
         % \framesubtitle{Downstream Capabilities on Llama 3.1-8B}
         
         
@@ -289,8 +292,8 @@
             \setlength{\tabcolsep}{5pt}
             \begin{tabular}{l|c|cc|cc}
                 \toprule
-                \multirow{2}{*}{\textbf{Model}} & \textbf{Overall} & \multicolumn{2}{c|}{\textbf{Single Turn Acc ($\uparrow$)}} & \textbf{Multi Turn} & \textbf{Hallucination} \\
-                 & \textbf{Acc ($\uparrow$)} & Non-Live & Live & \textbf{Acc ($\uparrow$)} & \textbf{Irrelevance ($\downarrow$)} \\
+                \multirow{2}{*}{\textbf{模型}} & \textbf{总体} & \multicolumn{2}{c|}{\textbf{单轮准确率（$\uparrow$）}} & \textbf{多轮} & \textbf{幻觉} \\
+                 & \textbf{准确率（$\uparrow$）} & 非实时 & 实时 & \textbf{准确率（$\uparrow$）} & \textbf{无关率（$\downarrow$）} \\
                 \midrule
                 ToolACE (LoRA)\cite{hu2022lora} & 58.32 & \textbf{87.56} & \textbf{76.10} & 7.62 & 88.05 \\
                 DoRA ($r=16$) \cite{liu2024dora}& 58.90 & 82.04 & 75.61 & 16.00 & 88.92 \\
@@ -302,17 +305,17 @@
                 \textbf{LoKI(with LoRA)} ($q=30$) & 57.16 & 81.96 & 71.66 & 15.75 & 84.01 \\
                 \bottomrule
             \end{tabular}
-            \caption{Comparison on Berkeley Function Calling Leaderboard V3.}
+            \caption{Berkeley Function Calling Leaderboard V3 上的比较结果。}
         \end{table}
 
-        \begin{alertblock}{Observation}
+        \begin{alertblock}{观察}
             % LoKI ($q=20$) demonstrates superior \textbf{multi-turn reasoning} (17.75\%), more than doubling the performance of the official LoRA model (7.62\%).
-            \textbf{LoKI achieves SOTA-competitive task performance with reduced hallucination}
+            \textbf{LoKI 在降低幻觉的同时，实现了具有 SOTA 竞争力的任务性能}
         \end{alertblock}
     \end{frame}
 
     % --- Slide 2: Task 1 CF (ToolACE) ---
-    \begin{frame}{Task 1 Analysis: Catastrophic Forgetting}
+    \begin{frame}{任务 1 分析：灾难性遗忘}
         % \framesubtitle{Preserving General Capabilities (Llama 3.1-8B) - Full Benchmark View}
         
                 
@@ -320,10 +323,11 @@
             \centering
             \scriptsize % 使用较小字体以容纳所有列
             % \setlength{\tabcolsep}{2.5pt} % 缩小列间距
+            \resizebox{\textwidth}{!}{%
             \begin{tabular}{l|cccccc|c}
                 \toprule
-                \textbf{Model} & \textbf{Trivia} & \textbf{GSM} & \textbf{Hella} & \textbf{Wino} & \textbf{Human} & \textbf{IF} & \textbf{Avg Loss} \\
-                 & \textbf{QA} & \textbf{8K} & \textbf{Swag} & \textbf{Grande} & \textbf{Eval} & \textbf{Eval} & \textbf{($\downarrow$)} \\
+                \textbf{模型} & \textbf{TriviaQA} & \textbf{GSM8K} & \textbf{HellaSwag} & \textbf{WinoGrande} & \textbf{HumanEval} & \textbf{IF} & \textbf{平均损失} \\
+                 &  &  &  &  &  &  & \textbf{($\downarrow$)} \\
                 \midrule
                 \textit{Llama 3.1-8B} & \textit{65.77} & \textit{84.46} & \textit{73.85} & \textit{62.98} & \textit{68.29} & \textit{79.76} & - \\
                 \midrule
@@ -337,18 +341,19 @@
                 
                 \bottomrule
             \end{tabular}
-            \caption{Comprehensive evaluation of CF on 6 diverse benchmarks.}
+            }
+            \caption{在 6 个多样化基准上的灾难性遗忘综合评估。}
         \end{table}
         
-        \begin{alertblock}{Observation}
+        \begin{alertblock}{观察}
             %  While PiSSA suffers severe degradation (~49\% loss) and LoRA drops significantly on HellaSwag and WinoGrande, LoKI ($q=10$) retains \textbf{99.66\%} of the original model's capabilities.
-            \textbf{LoKI maintains near-original performance across all 6 general tasks.}
+            \textbf{LoKI 在全部 6 个通用任务上保持了接近原始模型的性能。}
 
         \end{alertblock}
     \end{frame}
 
     % --- Slide 3: Task 2 Downstream (LB Reranker) ---
-    \begin{frame}{Task 2: LB Reranker \cite{qwen2025}}
+    \begin{frame}{任务 2：LB 重排序器}
         % \framesubtitle{Downstream Capabilities on Qwen 2.5-0.5B}
         
         
@@ -357,10 +362,10 @@
             \centering
             \scriptsize
             \setlength{\tabcolsep}{6pt}
-            % Table showing difference relative to Full FT
+            % Table showing difference relative to 全参数微调
             \begin{tabular}{l|cccc}
                 \toprule
-                \textbf{Model} & \textbf{MAP@1} & \textbf{Recall@1} & \textbf{NDCG@1} & \textbf{P@1} \\
+                \textbf{模型} & \textbf{MAP@1} & \textbf{召回率@1} & \textbf{NDCG@1} & \textbf{精确率@1} \\
                 & (\%) & (\%) & (\%) & (\%) \\
                 \midrule
                 DoRA ($r=8$) \cite{liu2024dora}& -8.7 & -8.7 & -11.2 & -10.4 \\
@@ -372,17 +377,17 @@
                 \textbf{LoKI ($q=30$)} & \alert{\textbf{+1.0}} & \alert{\textbf{+1.0}} & \alert{\textbf{+2.1}} & \alert{\textbf{+2.5}} \\
                 \bottomrule
             \end{tabular}
-            \caption{Retrieval performance on BEIR benchmark relative to Full Fine-Tuning model. Positive values indicate superior performance.}
+            \caption{相对于全参数微调模型在 BEIR 基准上的检索性能。正值表示性能更优。}
         \end{table}
 
-        \begin{alertblock}{Observation}
-            %  Other PEFT methods (DoRA, CorDA) generally underperform compared to Full FT (negative values). In contrast, \textbf{LoKI ($q=30$) achieves positive gains} across all key retrieval metrics.
-            \textbf{LoKI ($q=30$) outperforms Full Parameter Fine-Tuning on retrieval metrics.}
+        \begin{alertblock}{观察}
+            %  Other PEFT methods (DoRA, CorDA) generally underperform compared to 全参数微调 (negative values). In contrast, \textbf{LoKI ($q=30$) achieves positive gains} across all key retrieval metrics.
+            \textbf{LoKI（$q=30$）在检索指标上优于全参数微调。}
         \end{alertblock}
     \end{frame}
 
     % --- Slide 4: Task 2 CF (LB Reranker) ---
-    \begin{frame}{Task 2 Analysis: Catastrophic Forgetting}
+    \begin{frame}{任务 2 分析：灾难性遗忘}
         % \framesubtitle{Preserving General Capabilities (Qwen 2.5-0.5B) - Full Benchmark View}
 
         
@@ -390,79 +395,81 @@
             \centering
             \scriptsize % 使用较小字体
             \setlength{\tabcolsep}{2.5pt} % 缩小列间距
+            \resizebox{\textwidth}{!}{%
             \begin{tabular}{l|cccccc|c}
                 \toprule
-                \textbf{Model} & \textbf{Trivia} & \textbf{GSM} & \textbf{Hella} & \textbf{Wino} & \textbf{Human} & \textbf{IF} & \textbf{Avg Loss} \\
-                 & \textbf{QA} & \textbf{8K} & \textbf{Swag} & \textbf{Grande} & \textbf{Eval} & \textbf{Eval} & \textbf{($\downarrow$)} \\
+                \textbf{模型} & \textbf{TriviaQA} & \textbf{GSM8K} & \textbf{HellaSwag} & \textbf{WinoGrande} & \textbf{HumanEval} & \textbf{IF} & \textbf{平均损失} \\
+                 &  &  &  &  &  &  & \textbf{($\downarrow$)} \\
                 \midrule
                 \textit{Qwen 2.5-0.5B} & \textit{24.37} & \textit{39.65} & \textit{30.98} & \textit{44.20} & \textit{26.83} & \textit{33.39} & - \\
                 \midrule
-                Full FT & 4.65 & 2.65 & \alert{0.00} & \alert{0.00} & \alert{0.00} & 23.20 & 84.13\% \\
+                全参数微调 & 4.65 & 2.65 & \alert{0.00} & \alert{0.00} & \alert{0.00} & 23.20 & 84.13\% \\
                 DoRA ($r=8$) & 19.30 & 34.01 & 22.21 & 44.70 & 25.22 & 31.67 & 12.23\% \\
                 CorDA ($r=8$) & 4.64 & 2.43 & \alert{0.00} & \alert{0.00} & \alert{0.00} & 23.20 & 84.22\% \\
                 \midrule
                 \textbf{LoKI ($q=30$)} & 20.10 & \textbf{37.60} & \textbf{38.39} & \textbf{43.96} & \textbf{26.83} & 32.25 & \alert{\textbf{0.46\%}} \\
                 \bottomrule
             \end{tabular}
-            \caption{Comprehensive evaluation of CF on 6 diverse benchmarks.}
+            }
+            \caption{在 6 个多样化基准上的灾难性遗忘综合评估。}
         \end{table}
 
-        \begin{alertblock}{Observation}
+        \begin{alertblock}{观察}
             % Full Parameter Fine-Tuning and CorDA lead to complete model collapse (0.00 score) on reasoning tasks like HellaSwag and HumanEval. \textbf{LoKI remains robust}, preserving nearly all general knowledge.
-            \textbf{LoKI prevents the model collapse observed in Full Fine-Tuning.}
+            \textbf{LoKI 避免了全参数微调导致的模型崩溃。}
         \end{alertblock}
     \end{frame}
     
     % Slide 10: Ablation Study
 % Slide 10: Ablation Study
-    \begin{frame}{Ablation Studies: Validating Core Components}
+    \begin{frame}{消融实验：验证核心组件}
         % \framesubtitle{Why do we need KVA and Layer-Balanced Strategy?}
         
         \begin{columns}[T]
             % --- Column 1: Validation of KVA ---
             \begin{column}{0.49\textwidth}
-                \begin{block}{1. Effectiveness of KVA}
-                    \textit{Hypothesis: If KVA works, removing "High-Contribution" nodes (S-H) should cause massive damage.}
+                \begin{block}{1. KVA 的有效性}
+                    \textit{假设：如果 KVA 有效，移除“高贡献”节点（S-H）应当造成严重损伤。}
                     \vspace{0.2cm}
                     
                     \centering
                     \small
                     \begin{tabular}{l|c}
                         \toprule
-                        \textbf{Strategy ($q=1$)} & \textbf{Avg. Drop $\downarrow$} \\
+                        \textbf{策略（$q=1$）} & \textbf{平均下降幅度 $\downarrow$} \\
                         \midrule
-                        \textbf{S-H} (Suppress High) & \alert{\textbf{36.73\%}} \\
-                        S-L (Suppress Low) & \textcolor{blue}{\textbf{11.35\%}} \\
+                        \textbf{S-H} (抑制高贡献) & \alert{\textbf{36.73\%}} \\
+                        S-L (抑制低贡献) & \textcolor{blue}{\textbf{11.35\%}} \\
                         \midrule
-                        \textit{Performance Gap} & \textit{$\approx$ \textbf{25.38\%}} \\
+                        \textit{性能差距} & \textit{$\approx$ \textbf{25.38\%}} \\
                         \bottomrule
                     \end{tabular}
                 \end{block}
                 \vspace{0.1cm}
-                \footnotesize \textbf{Conclusion:} KVA accurately locates critical knowledge. Suppressing high-value nodes is $\mathbf{3\times}$ more destructive.
+                \footnotesize \textbf{结论：}KVA 能准确定位关键知识。抑制高价值节点的破坏性是其 3 倍。
             \end{column}
 
             % --- Column 2: Validation of Strategy ---
             \begin{column}{0.49\textwidth}
-                \begin{block}{2. Necessity of Layer-Balanced Strategy}
-                    \textit{Hypothesis: Simply picking the lowest global values (G-L) ignores structural hierarchy.}
+                \begin{block}{2. 分层平衡策略的必要性}
+                    \textit{假设：简单选择全局最低值（G-L）会忽略结构层级。}
                     \vspace{0.2cm}
                     
                     \centering
                     \small
                     \begin{tabular}{l|c}
                         \toprule
-                        \textbf{Method ($q=10$)} & \textbf{Avg. Drop $\downarrow$} \\
+                        \textbf{方法（$q=10$）} & \textbf{平均下降幅度 $\downarrow$} \\
                         \midrule
-                        Global-High (G-H) & 39.04\% \\
-                        Global-Low (G-L) & 30.48\% \\
+                        全局高值 (G-H) & 39.04\% \\
+                        全局低值 (G-L) & 30.48\% \\
                         \midrule
                         \textbf{LoKI} & \textcolor{green!60!black}{\textbf{8.86\%}} \\
                         \bottomrule
                     \end{tabular}
                 \end{block}
                 \vspace{0.1cm}
-                \footnotesize \textbf{Conclusion:} Global selection disrupts hierarchy. Layer-Balanced Strategy is essential for stability.
+                \footnotesize \textbf{结论：}全局选择会破坏层级结构。分层平衡策略是保持稳定性的关键。
             \end{column}
         \end{columns}
 
@@ -474,28 +481,28 @@
         % \end{alertblock}
     \end{frame}
     
-    % Slide 11: Conclusion
-    \section{Conclusion}
-    \begin{frame}{Conclusions}
+    % Slide 11: 结论
+    \section{结论}
+    \begin{frame}{结论}
         
-        \begin{block}{Main Contributions}
+        \begin{block}{主要贡献}
             \begin{itemize}
-                \item Proposed \textbf{LoKI}, a mechanistic-guided PEFT framework.
-                \item Introduced \textbf{KVA} for precise knowledge localization.
-                \item Developed the \textbf{Layer-Balanced Strategy} to preserve transformer knowledge hierarchy.
-                \item Demonstrated SOTA balance between task adaptation and CF resistance across multiple architectures.
+                \item 提出\textbf{LoKI}，一个机制引导的参数高效微调框架。
+                \item 提出\textbf{KVA}，实现精确的知识定位。
+                \item 提出\textbf{分层平衡策略}，保持 Transformer 的知识层级结构。
+                \item 在多种架构上展示了任务适配能力与抗灾难性遗忘能力之间的 SOTA 平衡。
             \end{itemize}
         \end{block}
 
         \vspace{0.3cm}
         \begin{center}
-            \alert{\textbf{LoKI bridges mechanistic insights with practical fine-tuning objectives.}}
+            \alert{\textbf{LoKI 将机制洞见与实际微调目标连接起来。}}
         \end{center}
     \end{frame}
     
     % Q&A Page with Logos and QR Codes
-    \section{Q \& A}
-\begin{frame}{Thank you for your attention!}
+    \section{问答}
+\begin{frame}{感谢聆听！}
     \begin{center}
         % 使用 tabular 环境，设置三列居中
         \begin{tabular}{ccc}
@@ -512,14 +519,14 @@
             % 第三行：文字说明
             \small arXiv:2505.22120 & 
             \small github.com/Nexround/LoKI & 
-            \small Contact Us \\
+            \small 联系我们 \\
         \end{tabular}
     \end{center}
 \end{frame}
 
-    % References Section
-    \section{References}
-    \begin{frame}[shrink=15]{References}
+    % 参考文献 Section
+    \section{参考文献}
+    \begin{frame}[shrink=15]{参考文献}
         \tiny
         \setlength{\itemsep}{0pt}
         \setlength{\parskip}{0pt}
