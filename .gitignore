@@ -16,6 +16,9 @@ build/
 *.run.xml
 *.blg
 *.pdf
+!assets/pipeline.pdf
+!assets/L3_5_H.pdf
+!assets/L3_5_L.pdf
 *.fdb_latexmk
 *.fls
 *.vrb
