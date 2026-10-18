@@ -19,6 +19,8 @@ build/
 !assets/pipeline.pdf
 !assets/L3_5_H.pdf
 !assets/L3_5_L.pdf
+!assets/RACE-paper.pdf
+!assets/RACE_pipeline.pdf
 *.fdb_latexmk
 *.fls
 *.vrb

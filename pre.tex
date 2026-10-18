@@ -21,278 +21,183 @@
     
     % Slide 2: Background
     \section{背景与动机}
-    \begin{frame}{背景：微调困境}
-        
-        \begin{columns}
-            \begin{column}{0.6\textwidth}
-                \textbf{任务适配的隐性代价：灾难性遗忘}
-                \begin{itemize}
-                    \item 大语言模型在预训练阶段积累世界知识 \cite{radford2018, brown2020}.
-                    \item 针对下游任务的微调常常导致\alert{灾难性遗忘（CF）} \cite{kotha2024, luo2025}.
-                    \item 传统方法进行\emph{无差别更新}，扰动关键记忆痕迹 \cite{cohen2023, petroni2019}.
-                \end{itemize}
-
-            \end{column}
-
-        \end{columns}
-    \end{frame}
-    
-
-% Slide 4: Motivation (Refactored from Introduction)
-    \begin{frame}{动机：抵御灾难性遗忘
-}
-        % Fine-tuning Guided by Mechanistic Insights
-        % \framesubtitle{From indiscriminate updates to mechanistic-guided implanting}
+    \begin{frame}{微调的隐性代价：灾难性遗忘}
         \begin{columns}[T]
             \begin{column}{0.48\textwidth}
-                \begin{alertblock}{问题：无差别更新}
-                    传统微调方法（例如 LoRA）\textbf{忽视}关键权重：
+                \begin{alertblock}{痛点：无差别更新破坏原有能力}
+                    现有微调方法（如全量微调、LoRA）对所有目标模块一视同仁：
                     \begin{itemize}
-                        \item 更新在各个模块中盲目进行。
-                        \item 优化会扰动\alert{关键记忆痕迹} \cite{cohen2023}。
-                        \item 结果：泛化能力下降 \cite{li2024revisiting}.
+                        \item 大模型在预训练阶段积累了丰富的通用知识 \cite{radford2018, brown2020}。
+                        \item 盲目的梯度更新会覆盖\alert{关键记忆参数} \cite{cohen2023, petroni2019}。
+                        \item 下游任务学得越好，通用推理与常识往往退化越严重 \cite{kotha2024, luo2025, li2024revisiting}。
                     \end{itemize}
                 \end{alertblock}
             \end{column}
             
             \begin{column}{0.48\textwidth}
-                \begin{exampleblock}{机遇：知识定位与参数冗余}
-                    机制研究表明：
+                \begin{exampleblock}{突破口：知识可定位与参数冗余}
+                    可解释性研究表明：
                     \begin{itemize}
-                        \item 内部知识既\textbf{可识别}又\textbf{可编辑} \cite{meng2023mass, geva2021}.
-                        \item 大语言模型具有显著的\textbf{参数冗余} \cite{sanh2020}.
+                        \item 模型内部的知识存储位置\textbf{可识别、可定位} \cite{meng2023mass, geva2021}。
+                        \item 大模型存在大量对通用能力贡献极低的\textbf{冗余参数} \cite{sanh2020}。
                     \end{itemize}
                 \end{exampleblock}
+                \vspace{0.3em}
+                \textbf{核心思路：}
+                避开承载核心知识的权重，只激活\alert{低贡献权重}来写入下游新知识，实现“低损伤”适配。
             \end{column}
         \end{columns}
-
-        
     \end{frame}
     
-    \begin{frame}{参数高效微调的下一步：从无差别更新到机制引导的适配}
-        \textbf{我们的假设：}
-        通过识别\alert{低贡献权重}，我们可以将其重新用作容纳新知识的空间，同时对现有能力造成\textbf{最小损伤}。
-    \end{frame}
     % Slide 5: LoKI 框架
     \section{LoKI 框架}
-    \begin{frame}{LoKI 的主要优势}
-        
-        % \textbf{LoKI offers several major advantages:}
-        
-        % \vspace{0.3cm}
-        
-        \begin{enumerate}
-            \item \textbf{在灾难性遗忘与任务性能之间取得更优平衡}
+    \begin{frame}{LoKI 的核心特性}
+        \begin{enumerate}\setlength{\itemsep}{0.6em}
+            \item \textbf{兼顾下游适配与通用能力保留}
             \begin{itemize}
-                \item 在两种代表性规模的大语言模型上进行 LoKI 微调，可以有效缓解灾难性遗忘；在保持较强任务性能的同时，性能优于当前先进的参数高效微调方法。
+                \item 精准冻结预训练关键节点，在取得 SOTA 下游性能的同时，几乎消除灾难性遗忘。
             \end{itemize}
             
-            \vspace{0.2cm}
-            
-            \item \textbf{天然具备参数高效性}
+            \item \textbf{可训练参数量灵活可控}
             \begin{itemize}
-                \item LoKI 只更新模型原始参数的一个子集，并允许显式控制可训练权重的数量。
+                \item 仅更新模型原始参数的一小部分（如 $10\%\sim 30\%$），无需引入额外推理分支。
             \end{itemize}
             
-            \vspace{0.2cm}
-            
-            \item \textbf{可与其他调优方法协同工作}
+            \item \textbf{无缝兼容主流微调组件}
             \begin{itemize}
-                \item 除了直接适配下游任务外，LoKI 还可以与低秩适配（LoRA）等现有参数高效调优技术结合，进一步减少可训练参数的数量。
+                \item 既可直接更新选中权重，也可与 LoRA 结合（LoKI-LoRA）进一步压缩显存，即插即用接入 Llama-Factory 等框架。
             \end{itemize}
         \end{enumerate}
     \end{frame}
     
     % Slide 6: LoKI 框架 Details
-    \begin{frame}{LoKI：低损伤知识植入}
-        \framesubtitle{分阶段的微调流程}
-        
+    \begin{frame}{LoKI：三阶段知识植入流程}
         \begin{columns}
             \begin{column}{0.5\textwidth}
                 \begin{center}
                     \includegraphics[width=\textwidth]{assets/pipeline.pdf}
-                    \\ \scriptsize \textbf{图 1：} LoKI 分阶段微调流程示意图。
-
+                    \\ \scriptsize \textbf{图 1：} LoKI 三阶段微调流程。
                 \end{center}
             \end{column}
             
             \begin{column}{0.5\textwidth}
-                % \textbf{Three Stages to Mitigate CF:}
-                
-                % \vspace{0.3cm}
-                
-                \begin{description}
-                    \item[1. 分析] 使用\textbf{KVA（知识向量归因）}评估每个节点对预训练行为的贡献。
-                    \item[2. 选择] 应用\textbf{分层平衡策略}选择可训练节点，同时保持层级结构稳定性。
-                    \item[3. 植入] 划分权重：冻结关键权重（$W_{\setminus S}$），仅更新低损伤权重（$W_S$）。
+                \begin{description}\setlength{\itemsep}{0.6em}
+                    \item[1. 归因评分] 用\textbf{知识向量归因（KVA）}量化每个 FFN 节点对通用预训练能力的贡献度。
+                    \item[2. 分层筛选] 通过\textbf{分层平衡策略}在每层等比例选出低贡献节点，维持网络层级信息流稳定。
+                    \item[3. 定向植入] 冻结核心权重（$W_{\setminus S}$），仅在低贡献权重（$W_S$）上微调写入新知识。
                 \end{description}
             \end{column}
         \end{columns}
-
     \end{frame}
     
 
 % Slide: Stage 1 - 知识向量 Attribution (KVA)
     \begin{frame}{阶段 1：知识向量归因（KVA）}
-        % \framesubtitle{Mechanistic interpretation of FFN as Memory}
-        
         \begin{columns}[T]
             % --- Left Column: FFN as KV Pair ---
             \begin{column}{0.48\textwidth}
-                \textbf{将 FFN 解释为键值记忆的机制视角} \cite{geva2021}
+                \textbf{FFN 的键值记忆视角} \cite{geva2021}
                 \begin{itemize}
                     \item \(\text{FFN}(x) = W_{down} \sigma(W_{up} x)\)
-
-                    \item \textbf{键（$W_{up}$）：}检测输入模式或特征。
-                    \item \textbf{值（$W_{down}$）：}存储可解释概念。
+                    \item \textbf{键（$W_{up}$）：}匹配并激活输入模式。
+                    \item \textbf{值（$W_{down}$）：}存储具体的语义概念与知识。
                 \end{itemize}
 
-                \begin{block}{知识向量}
-                    我们将 $W_{down}$ 的第 $j$ 列视为一个\alert{知识向量}（$\mathbf{v}_j$）。
-                    
-                    每个向量 $\mathbf{v}_j$ 都是一个独立的知识存储单元。
+                \begin{block}{基本分析单元：知识向量}
+                    将 $W_{down}$ 的每一列 $\mathbf{v}_j$ 视为一个独立的\alert{知识向量}，对应单个中间层神经元。
                 \end{block}
             \end{column}
 
             % --- Right Column: KVA Method ---
             \begin{column}{0.48\textwidth}
-                \textbf{KVA 方法}
+                \textbf{基于积分梯度（IG）量化节点重要性}
                 \begin{itemize}
-                    \item 基于\alert{积分梯度（IG）} \cite{sundararajan2017}，量化各知识向量对模型\textbf{预训练行为}（通用任务）的贡献。
-                    \item 第 $l$ 层节点 $j$ 的路径积分归因：
+                    \item 沿激活值路径积分，计算第 $l$ 层节点 $j$ 对通用任务的贡献 \cite{sundararajan2017}：
                 \end{itemize}
-
+                \vspace{-0.2em}
                 \begin{equation*}
                     \text{Attr}_{l,j}(\mathbf{x}) = \int_{\alpha=0}^{1} \frac{\partial \mathcal{L}(\alpha \cdot z_{l,j})}{\partial z_{l,j}} d\alpha
                 \end{equation*}
-
-
+                \vspace{-0.4em}
+                \begin{alertblock}{一次性离线画像}
+                    \begin{itemize}
+                        \item 在 57 个学科的 \textbf{MMLU} 基准上完成通用能力探针评分 \cite{kemker2018b}。
+                        \item \textbf{与任务解耦}：每个基座模型只需计算一次，可复用于任意下游任务。
+                    \end{itemize}
+                \end{alertblock}
             \end{column}
         \end{columns}
-    \end{frame}
-    % --- Stage 1: Slide 2 (Application on MMLU) ---
-    \begin{frame}{阶段 1：通过大规模多任务语言理解（MMLU）基准进行评分}
-        % \framesubtitle{Evaluating general-purpose performance}
-        \begin{columns}
-            \begin{column}{0.5\textwidth}
-        \textbf{为什么选择 MMLU？} \cite{kemker2018b}
-        \begin{itemize}
-            \item \textbf{广泛的领域覆盖：}涵盖 57 个不同学科（理工科、人文学科等）。
-            \item \textbf{标准化评估：}确保评分不局限于特定领域。
-            \item \textbf{通用能力代理指标：}MMLU 高分与现实世界的语言理解能力相关。
-        \end{itemize}
-            \end{column}
-            \begin{column}{0.45\textwidth}
-                \begin{alertblock}{关键特性}
-                \begin{itemize}
-                    \item \textbf{每个模型只需执行一次：}对于给定模型，KVA 只需运行一次
-                    \item \textbf{与任务无关：}不依赖下游任务
-                    % \item \textbf{Efficient:} Controllable overhead
-                \end{itemize}
-            \end{alertblock}
-              \end{column}  
-        \end{columns}
-        % \begin{columns}
-        %     \begin{column}{0.5\textwidth}
-        %         \begin{alertblock}{Computational Efficiency}
-        %             \begin{itemize}
-        %                 \item \textbf{Sampling Strategy:} Using only the first 50 samples per subset.
-        %                 \item \textbf{High Fidelity:} \alert{97.57\% overlap} in selected nodes compared to using the full dataset.
-        %                 \item \textbf{One-time Cost:} KVA is performed only once per model, independent of downstream tasks.
-        %             \end{itemize}
-        %         \end{alertblock}
-        %     \end{column}
-        %     \begin{column}{0.45\textwidth}
-        %         \begin{block}{Execution (RTX 4090)}
-        %             Average of \textbf{9.69 seconds} per sample for Llama 3.1-8B.
-        %         \end{block}
-        %     \end{column}
-        % \end{columns}
     \end{frame}
 
     % --- Stage 2: Slide 1 (Phenomenon & Heatmap) ---
-    \begin{frame}{阶段 2：KVA 结果分析}
-        % \framesubtitle{The "Novel Phenomenon" of structural bias}
-        
+    \begin{frame}{阶段 2：KVA 分数分布特征}
         \begin{columns}
             \begin{column}{0.45\textwidth}
                 \begin{center}
-                    \includegraphics[width=\textwidth]{assets/L3_5_H.pdf} \\
-                    \vspace{0.2cm}
-                    \includegraphics[width=\textwidth]{assets/L3_5_L.pdf} \\
+                    \includegraphics[width=0.92\textwidth]{assets/L3_5_H.pdf} \\
                     \vspace{0.1cm}
-                    \scriptsize \textbf{图 2：} Llama 3.1-8B 的 KVA 前 5\% 结果热力图。
+                    \includegraphics[width=0.92\textwidth]{assets/L3_5_L.pdf} \\
+                    \vspace{0.05cm}
+                    \scriptsize \textbf{图 2：} Llama 3.1-8B 的 KVA 前 5\% 节点分布热力图。
                 \end{center}
             \end{column}
             \begin{column}{0.5\textwidth}
-                \textbf{关键观察：}
-                \begin{itemize}
-                    \item \alert{结构异质性：}知识节点在不同层之间分布不均 \cite{meng2023mass, dai2022b}.
-                    \item \alert{聚集效应：}高贡献与低贡献节点都\textbf{密集集中在相同层中}。
-                    \item \alert{结构偏置：}分布并非随机；修改距离较远的层可能“覆盖”下游的信息流 \cite{hase2023}.
+                \textbf{直接按全局排序选点会出什么问题？}
+                \begin{itemize}\setlength{\itemsep}{0.4em}
+                    \item \alert{层间分布极不均匀}：不同层的归因幅值差异显著 \cite{meng2023mass, dai2022b}。
+                    \item \alert{同层聚集效应}：高贡献与低贡献节点往往集中在相同的活跃层中。
+                    \item \alert{破坏层间路由}：若直接在全局选最低分节点，更新会过度集中在少数层，截断或覆盖后续层的信息流 \cite{hase2023}。
                 \end{itemize}
-
             \end{column}
         \end{columns}
     \end{frame}
 
     % --- Stage 2: Slide 2 (Layer-Balanced Strategy Details) ---
     \begin{frame}{阶段 2：分层平衡策略}
-        % \framesubtitle{How to choose trainable parameters}
+        \textbf{设计原则：}为每一层分配相同的可训练参数配额（$q\%$），保持 Transformer 跨层计算结构的平衡 \cite{sun2025a}。
         
-        \textbf{目标：}为每层分配相同的可训练参数配额，以保持层级结构稳定性 \cite{sun2025a}.
-        
-        \begin{block}{实施步骤}
+        \begin{block}{四步筛选流程}
             \begin{enumerate}
-                \item \textbf{配额分配：}定义可训练位置总数 $T$（超参数 $q\%$），并为每层设置 $k_l = T/L$。
-                \item \textbf{逐样本选择：}对于每个样本 $t$，选择 KVA 值\alert{最低}的 $k_l$ 个节点。
-                \item \textbf{频次聚合：}统计所有 $N$ 个样本中的选择频次 $c_{l,i}$。
-                \item \textbf{最终选择：}在每层选择频次最高的节点，组成最终集合 $S$。
+                \item \textbf{配额均分：}给定总预算 $T$（占比 $q\%$），每层分配固定配额 $k_l = T/L$。
+                \item \textbf{单样本初筛：}对每个评测样本 $t$，在每层内选出 KVA 得分\alert{最低}的 $k_l$ 个节点。
+                \item \textbf{跨样本投票：}统计每个节点在全部 $N$ 个样本中落入低贡献区间的频次 $c_{l,i}$。
+                \item \textbf{确定激活集：}每层取频次最高的 $k_l$ 个节点，构成最终可训练集合 $S$。
             \end{enumerate}
         \end{block}
         
-        \begin{alertblock}{有效原因}
-            确保新植入的知识\textbf{符合层级关系}，避免过度扰动关键层。
+        \begin{alertblock}{结构优势}
+            确保新知识均匀嵌入模型的各个处理阶段，避免局部层被过度改写。
         \end{alertblock}
     \end{frame}
     
     % Slide 7: 阶段 3：知识植入
-    \begin{frame}{阶段 3：知识植入}
-        % \framesubtitle{Parameter partitioning}
-        
-        对于每一层 $l$，将 $W_{down}^{(l)}$ 分解为：
+    \begin{frame}{阶段 3：低损伤知识植入}
+        对于每一层 $l$，按选定集合 $S_l$ 将 $W_{down}^{(l)}$ 拆分为两个子矩阵：
         \begin{equation*}
-            W_{down}^{(l)} = [W_{S_l}; W_{\setminus S_l}] \rightarrow \begin{cases} W_{S_l} & \text{\alert{激活（低贡献）}} \\ W_{\setminus S_l} & \text{冻结（高贡献）} \end{cases}
+            W_{down}^{(l)} = [W_{S_l}; W_{\setminus S_l}] \rightarrow \begin{cases} W_{S_l} & \text{\alert{激活更新（低贡献通道）}} \\ W_{\setminus S_l} & \text{严格冻结（高贡献通道）} \end{cases}
         \end{equation*}
 
-        \begin{block}{实现方式}
+        \begin{block}{两种参数化模式}
             \begin{enumerate}
-                \item 直接更新选定的原始权重。
-                \item \textbf{LoKI-LoRA:} 将更新参数化为低秩矩阵 \cite{hu2022lora}:
-                \begin{equation*}
-                    \Delta W_{S_l} = A_l B_l
-                \end{equation*}
+                \item \textbf{LoKI（直接更新）：}仅对子矩阵 $W_{S_l}$ 计算梯度并更新，零推理延迟。
+                \item \textbf{LoKI-LoRA（低秩分解）：}将子矩阵更新进一步分解为低秩矩阵 $\Delta W_{S_l} = A_l B_l$ \cite{hu2022lora}，极致压缩可训练参数量。
             \end{enumerate}
         \end{block}
-        \alert{结果：}LoKI 被转化为按模块执行的流程，易于集成到现有流水线（例如 Llama-Factory）中。
+        \alert{工程友好：}通过矩阵重排转化为标准线性层操作，可直接接入 Llama-Factory 等主流训练框架。
     \end{frame}
     
     % Slide 8: Exp Results - Task Performance
-\section{实验}
+\section{实验与分析}
 
     % --- Slide 1: Task 1 Downstream (ToolACE) ---
-    \begin{frame}{任务 1：ToolACE 函数调用}
-        % \framesubtitle{Downstream Capabilities on Llama 3.1-8B}
-        
-        
-        
+    \begin{frame}{任务 1：ToolACE 函数调用（Llama 3.1-8B）}
         \begin{table}
             \centering
             \scriptsize
             \setlength{\tabcolsep}{5pt}
             \begin{tabular}{l|c|cc|cc}
                 \toprule
-                \multirow{2}{*}{\textbf{模型}} & \textbf{总体} & \multicolumn{2}{c|}{\textbf{单轮准确率（$\uparrow$）}} & \textbf{多轮} & \textbf{幻觉} \\
+                \multirow{2}{*}{\textbf{方法}} & \textbf{总体} & \multicolumn{2}{c|}{\textbf{单轮准确率（$\uparrow$）}} & \textbf{多轮} & \textbf{幻觉} \\
                  & \textbf{准确率（$\uparrow$）} & 非实时 & 实时 & \textbf{准确率（$\uparrow$）} & \textbf{无关率（$\downarrow$）} \\
                 \midrule
                 ToolACE (LoRA)\cite{hu2022lora} & 58.32 & \textbf{87.56} & \textbf{76.10} & 7.62 & 88.05 \\
@@ -302,34 +207,29 @@
                 LoKI ($q=10$) & 56.76 & 80.81 & 70.46 & 16.50 & \textbf{82.21} \\
                 \textbf{LoKI ($q=20$)} & 58.16 & 81.02 & 73.26 & \alert{\textbf{17.75}} & 85.73 \\
                 \textbf{LoKI ($q=30$)} & \alert{\textbf{58.93}} & 82.71 & 75.70 & 16.25 & 87.65 \\
-                \textbf{LoKI(with LoRA)} ($q=30$) & 57.16 & 81.96 & 71.66 & 15.75 & 84.01 \\
+                \textbf{LoKI-LoRA ($q=30$)} & 57.16 & 81.96 & 71.66 & 15.75 & 84.01 \\
                 \bottomrule
             \end{tabular}
-            \caption{Berkeley Function Calling Leaderboard V3 上的比较结果。}
+            \caption{Berkeley Function Calling Leaderboard V3 评测结果。}
         \end{table}
-
-        \begin{alertblock}{观察}
-            % LoKI ($q=20$) demonstrates superior \textbf{multi-turn reasoning} (17.75\%), more than doubling the performance of the official LoRA model (7.62\%).
-            \textbf{LoKI 在降低幻觉的同时，实现了具有 SOTA 竞争力的任务性能}
+        \vspace{-0.2em}
+        \begin{alertblock}{核心发现}
+            \small\textbf{多轮推理翻倍提升：}LoKI ($q=20$) 多轮准确率达 \textbf{17.75\%}（官方 LoRA 仅 7.62\%）；LoKI ($q=30$) 取得最高总体准确率（\textbf{58.93\%}），并显著降低调用幻觉。
         \end{alertblock}
     \end{frame}
 
     % --- Slide 2: Task 1 CF (ToolACE) ---
-    \begin{frame}{任务 1 分析：灾难性遗忘}
-        % \framesubtitle{Preserving General Capabilities (Llama 3.1-8B) - Full Benchmark View}
-        
-                
+    \begin{frame}{任务 1 遗忘评估：通用能力保留（Llama 3.1-8B）}
         \begin{table}
             \centering
-            \scriptsize % 使用较小字体以容纳所有列
-            % \setlength{\tabcolsep}{2.5pt} % 缩小列间距
+            \scriptsize
             \resizebox{\textwidth}{!}{%
             \begin{tabular}{l|cccccc|c}
                 \toprule
-                \textbf{模型} & \textbf{TriviaQA} & \textbf{GSM8K} & \textbf{HellaSwag} & \textbf{WinoGrande} & \textbf{HumanEval} & \textbf{IF} & \textbf{平均损失} \\
+                \textbf{模型} & \textbf{TriviaQA} & \textbf{GSM8K} & \textbf{HellaSwag} & \textbf{WinoGrande} & \textbf{HumanEval} & \textbf{IF} & \textbf{平均性能损失} \\
                  &  &  &  &  &  &  & \textbf{($\downarrow$)} \\
                 \midrule
-                \textit{Llama 3.1-8B} & \textit{65.77} & \textit{84.46} & \textit{73.85} & \textit{62.98} & \textit{68.29} & \textit{79.76} & - \\
+                \textit{Llama 3.1-8B (基座)} & \textit{65.77} & \textit{84.46} & \textit{73.85} & \textit{62.98} & \textit{68.29} & \textit{79.76} & - \\
                 \midrule
                 ToolACE (LoRA) & 64.63 & 79.53 & 46.81 & 42.78 & 60.37 & 72.76 & 16.11\% \\
                 DoRA ($r=16$) & 63.97 & 82.64 & 70.78 & 57.85 & 65.24 & 73.47 & 4.92\% \\
@@ -337,35 +237,27 @@
                 \midrule
                 \textbf{LoKI ($q=10$)} & \textbf{65.85} & \textbf{84.99} & \textbf{75.14} & 61.33 & 68.90 & 77.54 & \alert{\textbf{0.34\%}} \\
                 \textbf{LoKI ($q=30$)} & 65.49 & 84.61 & 71.16 & 61.09 & \textbf{70.73} & 77.94 & \alert{\textbf{1.23\%}} \\
-                 \textbf{LoKI(with LoRA)} ($q=30$) & 64.30 & 83.47 & 70.78 & \textbf{62.51} & 70.12 & \textbf{78.21} & \alert{\textbf{1.26\%}} \\
-                
+                 \textbf{LoKI-LoRA ($q=30$)} & 64.30 & 83.47 & 70.78 & \textbf{62.51} & 70.12 & \textbf{78.21} & \alert{\textbf{1.26\%}} \\
                 \bottomrule
             \end{tabular}
             }
-            \caption{在 6 个多样化基准上的灾难性遗忘综合评估。}
+            \caption{微调后在 6 个通用知识、推理与代码基准上的保留表现。}
         \end{table}
-        
-        \begin{alertblock}{观察}
-            %  While PiSSA suffers severe degradation (~49\% loss) and LoRA drops significantly on HellaSwag and WinoGrande, LoKI ($q=10$) retains \textbf{99.66\%} of the original model's capabilities.
-            \textbf{LoKI 在全部 6 个通用任务上保持了接近原始模型的性能。}
-
+        \vspace{-0.2em}
+        \begin{alertblock}{核心发现}
+            \small\textbf{近乎零遗忘：}PiSSA 损失近半通用能力（48.93\%），LoRA 在常识推理上退化明显（16.11\%）；而 LoKI ($q=10$) 保留了基座模型 \textbf{99.66\%} 的通用能力。
         \end{alertblock}
     \end{frame}
 
     % --- Slide 3: Task 2 Downstream (LB Reranker) ---
-    \begin{frame}{任务 2：LB 重排序器}
-        % \framesubtitle{Downstream Capabilities on Qwen 2.5-0.5B}
-        
-        
-        
+    \begin{frame}{任务 2：文本重排序（Qwen 2.5-0.5B）}
         \begin{table}
             \centering
             \scriptsize
             \setlength{\tabcolsep}{6pt}
-            % Table showing difference relative to 全参数微调
             \begin{tabular}{l|cccc}
                 \toprule
-                \textbf{模型} & \textbf{MAP@1} & \textbf{召回率@1} & \textbf{NDCG@1} & \textbf{精确率@1} \\
+                \textbf{方法} & \textbf{MAP@1} & \textbf{召回率@1} & \textbf{NDCG@1} & \textbf{精确率@1} \\
                 & (\%) & (\%) & (\%) & (\%) \\
                 \midrule
                 DoRA ($r=8$) \cite{liu2024dora}& -8.7 & -8.7 & -11.2 & -10.4 \\
@@ -377,31 +269,27 @@
                 \textbf{LoKI ($q=30$)} & \alert{\textbf{+1.0}} & \alert{\textbf{+1.0}} & \alert{\textbf{+2.1}} & \alert{\textbf{+2.5}} \\
                 \bottomrule
             \end{tabular}
-            \caption{相对于全参数微调模型在 BEIR 基准上的检索性能。正值表示性能更优。}
+            \caption{BEIR 基准上相对于全参数微调的性能差异（正值代表超越全量微调）。}
         \end{table}
-
-        \begin{alertblock}{观察}
-            %  Other PEFT methods (DoRA, CorDA) generally underperform compared to 全参数微调 (negative values). In contrast, \textbf{LoKI ($q=30$) achieves positive gains} across all key retrieval metrics.
-            \textbf{LoKI（$q=30$）在检索指标上优于全参数微调。}
+        \vspace{-0.2em}
+        \begin{alertblock}{核心发现}
+            \small\textbf{以 30\% 参数超越全量微调：}常规 PEFT 方法在小模型重排序上普遍落后于全量微调，而 LoKI ($q=30$) 在全部核心检索指标上实现反超。
         \end{alertblock}
     \end{frame}
 
     % --- Slide 4: Task 2 CF (LB Reranker) ---
-    \begin{frame}{任务 2 分析：灾难性遗忘}
-        % \framesubtitle{Preserving General Capabilities (Qwen 2.5-0.5B) - Full Benchmark View}
-
-        
+    \begin{frame}{任务 2 遗忘评估：避免小模型崩溃（Qwen 2.5-0.5B）}
         \begin{table}
             \centering
-            \scriptsize % 使用较小字体
-            \setlength{\tabcolsep}{2.5pt} % 缩小列间距
+            \scriptsize
+            \setlength{\tabcolsep}{2.5pt}
             \resizebox{\textwidth}{!}{%
             \begin{tabular}{l|cccccc|c}
                 \toprule
-                \textbf{模型} & \textbf{TriviaQA} & \textbf{GSM8K} & \textbf{HellaSwag} & \textbf{WinoGrande} & \textbf{HumanEval} & \textbf{IF} & \textbf{平均损失} \\
+                \textbf{模型} & \textbf{TriviaQA} & \textbf{GSM8K} & \textbf{HellaSwag} & \textbf{WinoGrande} & \textbf{HumanEval} & \textbf{IF} & \textbf{平均性能损失} \\
                  &  &  &  &  &  &  & \textbf{($\downarrow$)} \\
                 \midrule
-                \textit{Qwen 2.5-0.5B} & \textit{24.37} & \textit{39.65} & \textit{30.98} & \textit{44.20} & \textit{26.83} & \textit{33.39} & - \\
+                \textit{Qwen 2.5-0.5B (基座)} & \textit{24.37} & \textit{39.65} & \textit{30.98} & \textit{44.20} & \textit{26.83} & \textit{33.39} & - \\
                 \midrule
                 全参数微调 & 4.65 & 2.65 & \alert{0.00} & \alert{0.00} & \alert{0.00} & 23.20 & 84.13\% \\
                 DoRA ($r=8$) & 19.30 & 34.01 & 22.21 & 44.70 & 25.22 & 31.67 & 12.23\% \\
@@ -411,92 +299,80 @@
                 \bottomrule
             \end{tabular}
             }
-            \caption{在 6 个多样化基准上的灾难性遗忘综合评估。}
+            \caption{0.5B 小模型微调后在 6 个通用基准上的保留表现。}
         \end{table}
-
-        \begin{alertblock}{观察}
-            % Full Parameter Fine-Tuning and CorDA lead to complete model collapse (0.00 score) on reasoning tasks like HellaSwag and HumanEval. \textbf{LoKI remains robust}, preserving nearly all general knowledge.
-            \textbf{LoKI 避免了全参数微调导致的模型崩溃。}
+        \vspace{-0.2em}
+        \begin{alertblock}{核心发现}
+            \small\textbf{防止小模型崩溃：}0.5B 模型冗余度低，全量微调与 CorDA 在代码和常识基准上直接归零（损失超 84\%）；LoKI 保护核心参数，损失仅 \textbf{0.46\%}。
         \end{alertblock}
     \end{frame}
     
     % Slide 10: Ablation Study
-% Slide 10: Ablation Study
-    \begin{frame}{消融实验：验证核心组件}
-        % \framesubtitle{Why do we need KVA and Layer-Balanced Strategy?}
-        
+    \begin{frame}{消融实验：KVA 定位与分层策略缺一不可}
         \begin{columns}[T]
             % --- Column 1: Validation of KVA ---
             \begin{column}{0.49\textwidth}
-                \begin{block}{1. KVA 的有效性}
-                    \textit{假设：如果 KVA 有效，移除“高贡献”节点（S-H）应当造成严重损伤。}
+                \begin{block}{1. 验证 KVA：高分节点是否真关键？}
+                    将每层 $1\%$ 的高贡献节点（S-H）或低贡献节点（S-L）置零：
                     \vspace{0.2cm}
                     
                     \centering
                     \small
                     \begin{tabular}{l|c}
                         \toprule
-                        \textbf{策略（$q=1$）} & \textbf{平均下降幅度 $\downarrow$} \\
+                        \textbf{置零策略（$q=1$）} & \textbf{通用性能跌幅 $\downarrow$} \\
                         \midrule
-                        \textbf{S-H} (抑制高贡献) & \alert{\textbf{36.73\%}} \\
-                        S-L (抑制低贡献) & \textcolor{blue}{\textbf{11.35\%}} \\
+                        \textbf{S-H} (置零高贡献) & \alert{\textbf{36.73\%}} \\
+                        S-L (置零低贡献) & \textcolor{blue}{\textbf{11.35\%}} \\
                         \midrule
-                        \textit{性能差距} & \textit{$\approx$ \textbf{25.38\%}} \\
+                        \textit{破坏力差距} & \textit{$\approx$ \textbf{3.2 倍}} \\
                         \bottomrule
                     \end{tabular}
                 \end{block}
                 \vspace{0.1cm}
-                \footnotesize \textbf{结论：}KVA 能准确定位关键知识。抑制高价值节点的破坏性是其 3 倍。
+                \footnotesize \textbf{结论：}KVA 准确定位了核心知识通道，高分节点的破坏力是低分节点的 3.2 倍。
             \end{column}
 
             % --- Column 2: Validation of Strategy ---
             \begin{column}{0.49\textwidth}
-                \begin{block}{2. 分层平衡策略的必要性}
-                    \textit{假设：简单选择全局最低值（G-L）会忽略结构层级。}
+                \begin{block}{2. 验证分层平衡：为何不能全局直接选？}
+                    对比全局选最高（G-H）、全局选最低（G-L）与分层均衡选最低（LoKI）：
                     \vspace{0.2cm}
                     
                     \centering
                     \small
                     \begin{tabular}{l|c}
                         \toprule
-                        \textbf{方法（$q=10$）} & \textbf{平均下降幅度 $\downarrow$} \\
+                        \textbf{选点策略（$q=10$）} & \textbf{通用性能跌幅 $\downarrow$} \\
                         \midrule
                         全局高值 (G-H) & 39.04\% \\
                         全局低值 (G-L) & 30.48\% \\
                         \midrule
-                        \textbf{LoKI} & \textcolor{green!60!black}{\textbf{8.86\%}} \\
+                        \textbf{分层平衡 (LoKI)} & \textcolor{green!60!black}{\textbf{8.86\%}} \\
                         \bottomrule
                     \end{tabular}
                 \end{block}
                 \vspace{0.1cm}
-                \footnotesize \textbf{结论：}全局选择会破坏层级结构。分层平衡策略是保持稳定性的关键。
+                \footnotesize \textbf{结论：}全局选点会掏空特定层并导致严重退化（30.48\%），分层均衡将损伤降至 8.86\%。
             \end{column}
         \end{columns}
-
-        % \vspace{0.3cm}
-        
-        % % Final Summary Box
-        % \begin{alertblock}{Takeaway}
-        %     The combination of \textbf{Accurate Localization (KVA)} and \textbf{Structural Preservation (Layer-Balanced Strategy)} is the key to LoKI's success.
-        % \end{alertblock}
     \end{frame}
     
     % Slide 11: 结论
     \section{结论}
-    \begin{frame}{结论}
-        
-        \begin{block}{主要贡献}
-            \begin{itemize}
-                \item 提出\textbf{LoKI}，一个机制引导的参数高效微调框架。
-                \item 提出\textbf{KVA}，实现精确的知识定位。
-                \item 提出\textbf{分层平衡策略}，保持 Transformer 的知识层级结构。
-                \item 在多种架构上展示了任务适配能力与抗灾难性遗忘能力之间的 SOTA 平衡。
+    \begin{frame}{总结}
+        \begin{block}{核心工作}
+            \begin{itemize}\setlength{\itemsep}{0.4em}
+                \item \textbf{机制引导微调（LoKI）：}锁定关键记忆、重用冗余参数，从根源上缓解微调带来的灾难性遗忘。
+                \item \textbf{知识向量归因（KVA）：}利用积分梯度对模型做一次性通用能力画像，精准区分高低贡献节点。
+                \item \textbf{分层平衡策略：}按层均匀分配更新配额，维持 Transformer 跨层信息流稳定。
+                \item \textbf{卓越的实证表现：}在 8B 与 0.5B 模型上均实现强下游性能与近乎零遗忘（$<1.3\%$ 损失）兼得。
             \end{itemize}
         \end{block}
 
         \vspace{0.3cm}
         \begin{center}
-            \alert{\textbf{LoKI 将机制洞见与实际微调目标连接起来。}}
+            \alert{\textbf{打通可解释性机理分析与高效微调落地。}}
         \end{center}
     \end{frame}
     
@@ -504,19 +380,15 @@
     \section{问答}
 \begin{frame}{感谢聆听！}
     \begin{center}
-        % 使用 tabular 环境，设置三列居中
         \begin{tabular}{ccc}
-            % 第一行：Logo
             \includegraphics[height=1cm]{assets/arxiv-logo-1.png} & 
             \includegraphics[height=1cm]{assets/GitHub-Logo-700x394.png} & 
             \includegraphics[height=1cm]{assets/WeChat.png} \\[0.5cm]
             
-            % 第二行：二维码
             \includegraphics[width=3cm]{assets/arxiv_code.png} & 
             \includegraphics[width=3cm]{assets/github_code.png} & 
             \includegraphics[width=3cm]{assets/wechat_code.png} \\[0.2cm]
             
-            % 第三行：文字说明
             \small arXiv:2505.22120 & 
             \small github.com/Nexround/LoKI & 
             \small 联系我们 \\
